@@ -1,4 +1,4 @@
-WIP formal spec for a version the content-based splitting algorithms
+WIP formal spec for a version of the content-based splitting algorithms
 used by systems such as perkeep, bup, kopia, asuran, and others.
 
 Right now all that's here is a first pass at specifying one rolling hash
