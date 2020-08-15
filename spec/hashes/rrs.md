@@ -56,7 +56,7 @@ So, a typical implementation will work like:
 ## Choice of M
 
 Choosing $M = 2^{16}$ has the advantages of simplicity and efficiency,
-as it allows $s(k, l)` can to be computed using only shifts and bitwise
+as it allows $s(k, l)$ to be computed using only shifts and bitwise
 operators; in C:
 
 ```c
