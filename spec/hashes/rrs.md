@@ -41,7 +41,7 @@ rolling fashion by taking advantage of the fact that:
 
 $a(k + 1, l + 1) = (a(k, l) - (X_k + C) + (X_{l+1} + C)) \mod M$
 
-$b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + a(k + 1, l + 1)) \mod M$
+$b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + C) + a(k + 1, l + 1)) \mod M$
 
 So, a typical implementation will work like:
 
