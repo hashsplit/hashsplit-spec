@@ -11,6 +11,7 @@ A concrete `rrs` checksum is defined by the parameters:
 
 - $M$, the modulus
 - $C$, the character offset
+- $R$, the rotation.
 
 Given a sequence of bytes $X_0, X_1, ..., X_N$ and a choice of $M$ and
 $C$, the `rrs` hash of the sub-sequence $X_k, ..., X_l$ is $s(k, l)$,
@@ -20,17 +21,32 @@ $a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
 
 $b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
 
-$s(k, l) = a(k, l) + 2^{16}b(k, l)$
+$r(v) = (2^{R}v) \mod 2^{32}$
+
+$s(k, l) = r(a(k, l) + 2^{16}b(k, l))$
+
+## RRS0
+
+The concrete hash called `rrs0` uses the values:
+
+- $M = 2^{16}$
+- $C = 31$
+- $R = 0$
+
+`rrs0` is used by current versions of librsync as of August 2020.
+Note that the hash in the [rsync documentation][rsync] is not `rrs0`;
+that hash uses $C = 0$.
 
 ## RRS1
 
 The concrete hash called `rrs1` uses the values:
 
-$M = 2^{16}$
+- $M = 2^{16}$
+- $C = 31$
+- $R = 16$
 
-$C = 31$
-
-`rrs1` is used by both bup and perkeep.
+`rrs1` is used by both Bup and Perkeep, and implemented by the go
+package `go4.org/rollsum`.
 
 # Implementation
 
