@@ -21,9 +21,13 @@ $a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
 
 $b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
 
-$r(v) = (2^{R}v) \mod 2^{32}$
+$r(v) = \operatorname{rot}(R, v) \mod 2^{32}$
 
 $s(k, l) = r(a(k, l) + 2^{16}b(k, l))$
+
+Here, $\operatorname{rot}(R, v)$ means the result of rotating the bit vector $v$
+*left* by $R$ bits, that is, $v \ll R + v \gg (32 - R)$ (where the right shift
+is logical, not arithmetic).
 
 ## RRS0
 
