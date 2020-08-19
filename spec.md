@@ -1,3 +1,21 @@
+# Notation
+
+This section discusses notation used in this specification.
+
+All operations in this document are implicitly performed modulo
+$2^{32}$. We use standard mathematical notation for addition,
+subtraction, multiplication, and exponentiation. Division always
+denotes integer division, i.e. any remainder is dropped.
+
+We also use the following operators:
+
+- $x \ll y$ denotes shifting $x$ to the left $y$ bits, i.e.
+  $x \ll y = x2^{y}$
+- $x \gg y$ denotes a *logical* right shift -- it shifts $x$ to the
+  right by $y$ bits, i.e. $x \gg y = \frac{x}{2^y}$
+- $\operatorname{ROTL}^n(x)$ rotates $x$ $n$ bits to the left, i.e.
+  $\operatorname{ROTL}^n(x) = (x \ll n) + (x \gg (32 - n))$
+
 # The RRS Rolling Checksums
 
 The `rrs` family of checksums were first used in [rsync][rsync], and
@@ -21,13 +39,7 @@ $a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
 
 $b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
 
-$r(v) = \operatorname{rot}(R, v) \mod 2^{32}$
-
-$s(k, l) = r(a(k, l) + 2^{16}b(k, l))$
-
-Here, $\operatorname{rot}(R, v)$ means the result of rotating the bit vector $v$
-*left* by $R$ bits, that is, $v \ll R + v \gg (32 - R)$ (where the right shift
-is logical, not arithmetic).
+$s(k, l) = \operatorname{ROTL}^R(a(k, l) + 2^{16}b(k, l))$
 
 ## RRS0
 
