@@ -13,7 +13,7 @@ jobs:
       - name: Install Deps
         run: |
           export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get install -y make pandoc texlive
+          sudo apt-get install -y make pandoc
       - name: Build
         run: |
           make
