@@ -21,3 +21,7 @@ can easily make use of that information.
 # Building
 
 Install [pandoc](https://pandoc.org) and type `make`.
+
+There is also a built PDF version of the WIP spec [here][1]
+
+[1]: https://raw.githubusercontent.com/zenhack/hashsplit-spec/gh-pages/spec.pdf
