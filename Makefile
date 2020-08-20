@@ -5,9 +5,9 @@ clean:
 	rm -rf build/
 
 build/spec.html: build/.dir spec.md
-	$(MARKDOWN) -t html --mathml < $^ > $@
+	$(MARKDOWN) -t html --mathml -o $@ < $^
 build/spec.pdf: build/.dir spec.md
-	$(MARKDOWN) -t pdf < $^ > $@
+	$(MARKDOWN) -t latex -o $@ < $^
 build/.dir:
 	mkdir -p build
 	touch build/.dir
