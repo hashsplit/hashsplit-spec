@@ -9,12 +9,14 @@ denotes integer division, i.e. any remainder is dropped.
 
 We also use the following operators:
 
-- $x \ll y$ denotes shifting $x$ to the left $y$ bits, i.e.
-  $x \ll y = x2^{y}$
-- $x \gg y$ denotes a *logical* right shift -- it shifts $x$ to the
-  right by $y$ bits, i.e. $x \gg y = \frac{x}{2^y}$
+- $x \wedge y$ denotes the bitwise AND of $x$ and $y$
+- $x \vee y$ denotes the bitwise OR of $x$ and $y$
+- $x \ll n$ denotes shifting $x$ to the left $n$ bits, i.e.
+  $x \ll n = x2^{n}$
+- $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
+  right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
 - $\operatorname{ROTL}^n(x)$ rotates $x$ $n$ bits to the left, i.e.
-  $\operatorname{ROTL}^n(x) = (x \ll n) + (x \gg (32 - n))$
+  $\operatorname{ROTL}^n(x) = (x \ll n) \vee (x \gg (32 - n))$
 
 # The RRS Rolling Checksums
 
@@ -89,11 +91,9 @@ So, a typical implementation will work like:
 
 Choosing $M = 2^{16}$ has the advantages of simplicity and efficiency,
 as it allows $s(k, l)$ to be computed using only shifts and bitwise
-operators; in C:
+operators:
 
-```c
-uint32_t s = a | (b << 16);
-```
+$s(k, l) = \operatorname{ROTL}^R (a(k, l) \vee (b(k, l) \ll 16))$
 
 [rsync]: https://rsync.samba.org/tech_report/node3.html
 [bup]: https://bup.github.io/
