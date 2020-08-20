@@ -1,0 +1,29 @@
+name: gh-pages
+on:
+  push:
+    branches: [master]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: Install Deps
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get install -y make pandoc
+      - name: Build
+        run: |
+          make
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@3.5.9
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: build
+          # PDFs can get a bit large compared to sources;
+          # don't retain the history for the builds (we
+          # can always rebuild from source):
+          SINGLE_COMMIT: true
