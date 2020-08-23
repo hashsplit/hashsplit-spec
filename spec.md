@@ -15,15 +15,14 @@ We also use the following operators:
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
-- $\operatorname{ROTL}^n(x)$ rotates $x$ $n$ bits to the left, i.e.
-  $\operatorname{ROTL}^n(x) = (x \ll n) \vee (x \gg (32 - n))$
 
 # The RRS Rolling Checksums
 
-The `rrs` family of checksums were first used in [rsync][rsync], and
-later in [bup][bup] and [perkeep][perkeep]. `rrs` was originally
-inspired by the adler-32 checksum. The name `rrs` was chosen for this
-specification, and stands for `rsync rolling sum`.
+The `rrs` family of checksums is based on a rolling first used
+in [rsync][rsync], and later adapted for use in [bup][bup] and
+[perkeep][perkeep]. `rrs` was originally inspired by the adler-32
+checksum. The name `rrs` was chosen for this specification, and stands
+for `rsync rolling sum`.
 
 # Definition
 
@@ -31,7 +30,6 @@ A concrete `rrs` checksum is defined by the parameters:
 
 - $M$, the modulus
 - $C$, the character offset
-- $R$, the rotation.
 
 Given a sequence of bytes $X_0, X_1, ..., X_N$ and a choice of $M$ and
 $C$, the `rrs` hash of the sub-sequence $X_k, ..., X_l$ is $s(k, l)$,
@@ -41,19 +39,7 @@ $a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
 
 $b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
 
-$s(k, l) = \operatorname{ROTL}^R(a(k, l) + 2^{16}b(k, l))$
-
-## RRS0
-
-The concrete hash called `rrs0` uses the values:
-
-- $M = 2^{16}$
-- $C = 31$
-- $R = 0$
-
-`rrs0` is used by current versions of librsync as of August 2020.
-Note that the hash in the [rsync documentation][rsync] is not `rrs0`;
-that hash uses $C = 0$.
+$s(k, l) = b(k, l) + 2^{16}a(k, l)$
 
 ## RRS1
 
@@ -61,7 +47,6 @@ The concrete hash called `rrs1` uses the values:
 
 - $M = 2^{16}$
 - $C = 31$
-- $R = 16$
 
 `rrs1` is used by both Bup and Perkeep, and implemented by the go
 package `go4.org/rollsum`.
@@ -93,7 +78,7 @@ Choosing $M = 2^{16}$ has the advantages of simplicity and efficiency,
 as it allows $s(k, l)$ to be computed using only shifts and bitwise
 operators:
 
-$s(k, l) = \operatorname{ROTL}^R (a(k, l) \vee (b(k, l) \ll 16))$
+$s(k, l) = a(k, l) \vee (b(k, l) \ll 16)$
 
 [rsync]: https://rsync.samba.org/tech_report/node3.html
 [bup]: https://bup.github.io/
