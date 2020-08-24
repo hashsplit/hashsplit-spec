@@ -78,7 +78,7 @@ Choosing $M = 2^{16}$ has the advantages of simplicity and efficiency,
 as it allows $s(k, l)$ to be computed using only shifts and bitwise
 operators:
 
-$s(k, l) = a(k, l) \vee (b(k, l) \ll 16)$
+$s(k, l) = b(k, l) \vee (a(k, l) \ll 16)$
 
 [rsync]: https://rsync.samba.org/tech_report/node3.html
 [bup]: https://bup.github.io/
