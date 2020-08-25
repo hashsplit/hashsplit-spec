@@ -48,6 +48,8 @@ integer $i$ satisfying both:
 - $i \ge S_{min}$
 - $H(\langle X_{i-W+1}, ..., X_i \rangle) \wedge m = v$
 
+Note that $I_p(X)$ may be undefined.
+
 The "split index" $I(X)$ is:
 
 - $I_p(X)$ if $I_p(X) < S_{max}$
