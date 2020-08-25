@@ -18,6 +18,8 @@ We also use the following operators:
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
 
+We use the notation $\langle X_i, X_{i+1}, ..., X_k \rangle$ to denote a
+sequence of bytes.
 
 # The Splitting Algorithm
 
@@ -37,13 +39,14 @@ The parameters must satisfy:
 
 ## Definitions
 
-For a given sequence of bytes $X_0, X_1, ..., X_N$, we define:
+For a given sequence of bytes $\langle X_0, X_1, ..., X_N \rangle$, we
+define:
 
 The "preliminary split index" $I_p(X)$ is the smallest non-negative
 integer $i$ satisfying both:
 
 - $i \ge S_{min}$
-- $H(X_{i-W+1}, ..., X_i) \wedge m = v$
+- $H(\langle X_{i-W+1}, ..., X_i \rangle) \wedge m = v$
 
 The "split index" $I(X)$ is:
 
@@ -67,9 +70,9 @@ A concrete `rrs` checksum is defined by the parameters:
 - $M$, the modulus
 - $C$, the character offset
 
-Given a sequence of bytes $X_0, X_1, ..., X_N$ and a choice of $M$ and
-$C$, the `rrs` hash of the sub-sequence $X_k, ..., X_l$ is $s(k, l)$,
-where:
+Given a sequence of bytes $\langle X_0, X_1, ..., X_N \rangle$ and a
+choice of $M$ and $C$, the `rrs` hash of the sub-sequence $\langle X_k,
+..., X_l \rangle$ is $s(k, l)$, where:
 
 $a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
 
@@ -100,7 +103,7 @@ $b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + C) + a(k + 1, l + 1)) \mod M$
 
 So, a typical implementation will work like:
 
-- Keep $X_k, ..., X_l$ in a ring buffer.
+- Keep $\langle X_k, ..., X_l \rangle$ in a ring buffer.
 - Also store $a(k, l)$ and $b(k, l)$.
 - When $X_{l+1}$ is added to the hash:
   - Dequeue $X_k$ from the ring buffer, and enqueue $X_{l+1}$.
