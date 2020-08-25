@@ -9,6 +9,9 @@ $2^{32}$. We use standard mathematical notation for addition,
 subtraction, multiplication, and exponentiation. Division always
 denotes integer division, i.e. any remainder is dropped.
 
+We use the notation $\langle X_i, X_{i+1}, ..., X_k \rangle$ to denote a
+sequence of bytes.
+
 We also use the following operators:
 
 - $x \wedge y$ denotes the bitwise AND of $x$ and $y$
@@ -17,9 +20,10 @@ We also use the following operators:
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
-
-We use the notation $\langle X_i, X_{i+1}, ..., X_k \rangle$ to denote a
-sequence of bytes.
+- $X || Y$ denotes the concatenation of two byte sequences $X$ and $Y$,
+  i.e. if $X = \langle X_0, ..., X_N \rangle$ and $Y = \langle Y_0,
+  ..., Y_M \rangle$ then $X || Y = \langle X_0, ..., X_N, Y_0, ..., Y_M
+  \rangle$
 
 # The Splitting Algorithm
 
