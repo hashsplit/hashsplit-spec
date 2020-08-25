@@ -4,13 +4,25 @@
 
 This section discusses notation used in this specification.
 
-All operations in this document are implicitly performed modulo
-$2^{32}$. We use standard mathematical notation for addition,
+We define the following sets:
+
+- $U_{32}$, The set of integers in the range $[0, 2^{32})$
+- $U_8$, The set of integers in the range $[0, 2^8)$, aka bytes.
+- $V_8$, The set of *sequences* of bytes, i.e. sequences of
+  $U_8$.
+- $V_v$, The set of *sequences* of *sequences* of bytes, i.e.
+  sequences of elements of $V_8$.
+
+All arithmetic operations in this document are implicitly performed
+modulo $2^{32}$. We use standard mathematical notation for addition,
 subtraction, multiplication, and exponentiation. Division always
 denotes integer division, i.e. any remainder is dropped.
 
-We use the notation $\langle X_i, X_{i+1}, ..., X_k \rangle$ to denote a
-sequence of bytes.
+We use the notation $\langle X_0, X_1, ..., X_k \rangle$ to denote
+an ordered sequence of values.
+
+$|X|$ denotes the length of the sequence $X$, i.e. the number of
+elements it contains.
 
 We also use the following operators:
 
@@ -20,44 +32,49 @@ We also use the following operators:
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
-- $X || Y$ denotes the concatenation of two byte sequences $X$ and $Y$,
+- $X || Y$ denotes the concatenation of two sequences $X$ and $Y$,
   i.e. if $X = \langle X_0, ..., X_N \rangle$ and $Y = \langle Y_0,
   ..., Y_M \rangle$ then $X || Y = \langle X_0, ..., X_N, Y_0, ..., Y_M
   \rangle$
 
-# The Splitting Algorithm
+# Splitting
 
-The splitting algorithm is parametrized over:
+The primary result of this specification is to define a family of
+functions:
 
-- $S_{min}$, the minimum split size
-- $S_{max}$, the maximum split size
-- $H$, the hash function
-- $W$, the window size
-- $m$, the split mask
-- $v$, the split value
+$\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 
-The parameters must satisfy:
+...which is parameterized by a configuration $C$, consisting of:
 
-- $S_{max} \ge S_{min}$
-- $S_{min} \ge W$
+- $S_{min} \in U_{32}$, the minimum split size
+- $S_{max} \in U_{32}$, the maximum split size
+- $H \in V_8 \rightarrow U_{32}$, the hash function
+- $W \in U_{32}$, the window size
+- $m \in U_{32}$, the split mask
+- $v \in U_{32}$, the split value
+
+The configuration must satisfy $S_{max} \ge S_{min} \ge W$
 
 ## Definitions
 
-For a given sequence of bytes $\langle X_0, X_1, ..., X_N \rangle$, we
-define:
+The "split index" $I(X)$, if it exists, is the smallest
+integer $i$ satisfying each of:
 
-The "preliminary split index" $I_p(X)$ is the smallest non-negative
-integer $i$ satisfying both:
-
-- $i \ge S_{min}$
+- $i < |X|$
+- $S_{max} \ge i \ge S_{min}$
 - $H(\langle X_{i-W+1}, ..., X_i \rangle) \wedge m = v$
 
-Note that $I_p(X)$ may be undefined.
+We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
-The "split index" $I(X)$ is:
-
-- $I_p(X)$ if $I_p(X) < S_{max}$
-- $S_{max}$ otherwise
+- If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
+- Otherwise, if $I(X)$ exists,
+  $\operatorname{SPLIT}_C(X) = \langle Y \rangle || \operatorname{SPLIT}_C(Z)$
+  where
+  - $i = I(X)$
+  - $N = |X| - 1$
+  - $Y = \langle X_0, ..., X_i \rangle$
+  - $Z = \langle X_{i+1}, ..., X_N \rangle$
+- Otherwise, $\operatorname{SPLIT}_C(X) = \langle X \rangle$.
 
 # Rolling Hash Functions
 
@@ -74,15 +91,15 @@ for `rsync rolling sum`.
 A concrete `rrs` checksum is defined by the parameters:
 
 - $M$, the modulus
-- $C$, the character offset
+- $c$, the character offset
 
 Given a sequence of bytes $\langle X_0, X_1, ..., X_N \rangle$ and a
-choice of $M$ and $C$, the `rrs` hash of the sub-sequence $\langle X_k,
+choice of $M$ and $c$, the `rrs` hash of the sub-sequence $\langle X_k,
 ..., X_l \rangle$ is $s(k, l)$, where:
 
-$a(k, l) = (\sum_{i = k}^{l} (X_i + C)) \mod M$
+$a(k, l) = (\sum_{i = k}^{l} (X_i + c)) \mod M$
 
-$b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
+$b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + c)) \mod  M$
 
 $s(k, l) = b(k, l) + 2^{16}a(k, l)$
 
@@ -91,7 +108,7 @@ $s(k, l) = b(k, l) + 2^{16}a(k, l)$
 The concrete hash called `rrs1` uses the values:
 
 - $M = 2^{16}$
-- $C = 31$
+- $c = 31$
 
 `rrs1` is used by both Bup and Perkeep, and implemented by the go
 package `go4.org/rollsum`.
@@ -103,9 +120,9 @@ package `go4.org/rollsum`.
 `rrs` is a family of _rolling_ hashes. We can compute hashes in a
 rolling fashion by taking advantage of the fact that:
 
-$a(k + 1, l + 1) = (a(k, l) - (X_k + C) + (X_{l+1} + C)) \mod M$
+$a(k + 1, l + 1) = (a(k, l) - (X_k + c) + (X_{l+1} + c)) \mod M$
 
-$b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + C) + a(k + 1, l + 1)) \mod M$
+$b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + c) + a(k + 1, l + 1)) \mod M$
 
 So, a typical implementation will work like:
 
