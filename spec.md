@@ -1,3 +1,5 @@
+# Introduction
+
 # Notation
 
 This section discusses notation used in this specification.
@@ -16,7 +18,41 @@ We also use the following operators:
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
 
-# The RRS Rolling Checksums
+
+# The Splitting Algorithm
+
+The splitting algorithm is parametrized over:
+
+- $S_{min}$, the minimum split size
+- $S_{max}$, the maximum split size
+- $H$, the hash function
+- $W$, the window size
+- $m$, the split mask
+- $v$, the split value
+
+The parameters must satisfy:
+
+- $S_{max} \ge S_{min}$
+- $S_{min} \ge W$
+
+## Definitions
+
+For a given sequence of bytes $X_0, X_1, ..., X_N$, we define:
+
+The "preliminary split index" $I_p(X)$ is the smallest non-negative
+integer $i$ satisfying both:
+
+- $i \ge S_{min}$
+- $H(X_{i-W+1}, ..., X_i) \wedge m = v$
+
+The "split index" $I(X)$ is:
+
+- $I_p(X)$ if $I_p(X) < S_{max}$
+- $S_{max}$ otherwise
+
+# Rolling Hash Functions
+
+## The RRS Rolling Checksums
 
 The `rrs` family of checksums is based on a rolling first used
 in [rsync][rsync], and later adapted for use in [bup][bup] and
@@ -24,7 +60,7 @@ in [rsync][rsync], and later adapted for use in [bup][bup] and
 checksum. The name `rrs` was chosen for this specification, and stands
 for `rsync rolling sum`.
 
-# Definition
+### Definition
 
 A concrete `rrs` checksum is defined by the parameters:
 
@@ -41,7 +77,7 @@ $b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + C)) \mod  M$
 
 $s(k, l) = b(k, l) + 2^{16}a(k, l)$
 
-## RRS1
+#### RRS1
 
 The concrete hash called `rrs1` uses the values:
 
@@ -51,9 +87,9 @@ The concrete hash called `rrs1` uses the values:
 `rrs1` is used by both Bup and Perkeep, and implemented by the go
 package `go4.org/rollsum`.
 
-# Implementation
+### Implementation
 
-## Rolling
+#### Rolling
 
 `rrs` is a family of _rolling_ hashes. We can compute hashes in a
 rolling fashion by taking advantage of the fact that:
@@ -72,7 +108,7 @@ So, a typical implementation will work like:
     $a(k + 1, l + 1)$ and $b(k + 1, l + 1)$. Then use those values to
     compute $s(k + 1, l + 1)$ and also store them for future use.
 
-## Choice of M
+#### Choice of M
 
 Choosing $M = 2^{16}$ has the advantages of simplicity and efficiency,
 as it allows $s(k, l)$ to be computed using only shifts and bitwise
