@@ -1,5 +1,27 @@
 # Introduction
 
+This specification describes a mechanism for splitting a large
+byte stream into blocks based on their content, and a mechanism for
+organizing those blocks into a balanced tree.
+
+The general technique has been used by various systems such as:
+
+- [Perkeep](https://perkeep.org)
+- [Bup](https://bup.github.io/)
+- [RSync](https://rsync.samba.org/)
+- [Low-Bandwidth Network Filesystem (LBFS)](https://pdos.csail.mit.edu/papers/lbfs:sosp01/lbfs.pdf)
+- [Syncthing](https://syncthing.net/)
+- [Kopia](https://github.com/kopia/kopia)
+
+...and many others. However, the exact functions used by these
+systems differ in details, and thus do not produce identical splits,
+making interoperability for some use cases more difficult than it
+should be.
+
+The role of this specification is therefore to fully and formally
+describe a concrete function on which future systems may standardize,
+improving interoperability.
+
 # Notation
 
 This section discusses notation used in this specification.
