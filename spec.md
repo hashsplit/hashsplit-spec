@@ -97,6 +97,10 @@ We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
   - $Z = \langle X_{i+1}, ..., X_N \rangle$
 - Otherwise, $\operatorname{SPLIT}_C(X) = \langle X \rangle$.
 
+# Tree Construction
+
+TODO
+
 # Rolling Hash Functions
 
 ## The RRS Rolling Checksums
