@@ -50,8 +50,7 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $S_{max} \in U_{32}$, the maximum split size
 - $H \in V_8 \rightarrow U_{32}$, the hash function
 - $W \in U_{32}$, the window size
-- $m \in U_{32}$, the split mask
-- $v \in U_{32}$, the split value
+- $T \in U_{32}$, the threshold
 
 The configuration must satisfy $S_{max} \ge S_{min} \ge W$
 
@@ -62,7 +61,7 @@ integer $i$ satisfying each of:
 
 - $i < |X|$
 - $S_{max} \ge i \ge S_{min}$
-- $H(\langle X_{i-W+1}, ..., X_i \rangle) \wedge m = v$
+- $H(\langle X_{i-W+1}, ..., X_i \rangle) \mod 2^T = 0$
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
