@@ -72,21 +72,21 @@ We also use the following operators and functions:
 The primary result of this specification is to define a family of
 functions:
 
-$\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
+$\operatorname{SPLIT}_{T, C} \in V_8 \rightarrow V_v$
 
-...which is parameterized by a configuration $C$, consisting of:
+...which is parameterized by an integer $T \in U_{32}$, called the
+"threshold", and a configuration $C$, consisting of:
 
 - $S_{\text{min}} \in U_{32}$, the minimum split size
 - $S_{\text{max}} \in U_{32}$, the maximum split size
 - $H \in V_8 \rightarrow U_{32}$, the hash function
 - $W \in U_{32}$, the window size
-- $T \in U_{32}$, the threshold
 
 The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W > 0$.
 
 ## Definitions
 
-The "split index" $I(X)$, is either the smallest integer $i$ satisfying:
+The "split index" $I_{T, C}(X)$ is either the smallest integer $i$ satisfying:
 
 - $i < |X|$ and
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
@@ -94,11 +94,11 @@ The "split index" $I(X)$, is either the smallest integer $i$ satisfying:
 
 ...or $\min(|X| - 1, S_{\text{max}})$, if no such $i$ exists.
 
-We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
+We define $\operatorname{SPLIT}_{T, C}(X)$ recursively, as follows:
 
-- If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = \langle Y \rangle \mathbin{\|}
-  \operatorname{SPLIT}_C(Z)$ where
+- If $|X| = 0$, $\operatorname{SPLIT}_{T, C}(X) = \langle \rangle$
+- Otherwise, $\operatorname{SPLIT}_{T, C}(X) = \langle Y \rangle \mathbin{\|}
+  \operatorname{SPLIT}_{T, C}(Z)$ where
   - $i = I(X)$
   - $N = |X| - 1$
   - $Y = \langle X_0, \dots, X_i \rangle$
@@ -106,7 +106,38 @@ We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 # Tree Construction
 
-TODO
+For our purposes, a tree consists of a node (the "root") with an
+associated value (its "label") along with zero or more children, each
+of which is itself a tree. The children of each node are ordered. A
+"leaf" is a node with zero children; for convenience, a tree whose root
+is a leaf node will also be referred to as a "leaf".
+
+Let $C$ be a configuration, and let $T$ and $S$ be positive integers. We
+call $T$ the "threshold", as before, and $S$ the "step". Now for $X \in
+V_8$ we define $\operatorname{TREE}_{T, S, C} (X)$ recursively as
+follows:
+
+- If $|X| = 0$, $\operatorname{TREE}_{T, S, C} (X)$ is a leaf labelled
+  by $X$
+- Otherwise, if $I_{T, C}(X)$ exists, $\operatorname{TREE}_{T, S, C}
+  (X)$ is a node labelled by $X$ whose children in order are leaves
+  corresponding to, and labelled by, the entries of
+  $\operatorname{SPLIT}_{T, C} (X)$
+- Otherwise, $\operatorname{TREE}_{T, S, C}$ is a node labelled by $X$
+  whose children in order are the subtrees $\operatorname{TREE}_{T, S,
+  C} (Y)$ for each entry $Y$ in $\operatorname{SPLIT}_{T + nS, C} (X)$,
+  where $n$ is the largest integer such that $I_{T + nS, C} (X)$
+  exists.
+
+Note the following properties of $\operatorname{TREE}_{T, S, C} (X)$:
+
+- Each non-leaf node has at least two children
+- Each node is labelled by a nonempty element of $V_8$
+- The label of any non-leaf node is equal to the concatenation in order
+  of the labels of its children
+- The labels of the leaf nodes in their natural order (inherited from
+  the inorder traversal of the tree) are exactly the
+  entries of $\operatorname{SPLIT}_{T, C} (X)$.
 
 # Rolling Hash Functions
 
