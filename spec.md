@@ -53,7 +53,7 @@ We also use the following operators:
 - $x \ll n$ denotes shifting $x$ to the left $n$ bits, i.e.
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
-  right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
+  right by $n$ bits, i.e. $x \gg n = x / 2^n$
 - $X \mathbin{\|} Y$ denotes the concatenation of two sequences $X$ and $Y$,
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
@@ -68,13 +68,13 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 
 ...which is parameterized by a configuration $C$, consisting of:
 
-- $S_{min} \in U_{32}$, the minimum split size
-- $S_{max} \in U_{32}$, the maximum split size
+- $S_{\text{min}} \in U_{32}$, the minimum split size
+- $S_{\text{max}} \in U_{32}$, the maximum split size
 - $H \in V_8 \rightarrow U_{32}$, the hash function
 - $W \in U_{32}$, the window size
 - $T \in U_{32}$, the threshold
 
-The configuration must satisfy $S_{max} \ge S_{min} \ge W$
+The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W$.
 
 ## Definitions
 
@@ -82,7 +82,7 @@ The "split index" $I(X)$, if it exists, is the smallest
 integer $i$ satisfying each of:
 
 - $i < |X|$
-- $S_{max} \ge i \ge S_{min}$
+- $S_{\text{max}} \ge i \ge S_{\text{min}}$
 - $H(\langle X_{i-W+1}, \dots, X_i \rangle) \mod 2^T = 0$
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
