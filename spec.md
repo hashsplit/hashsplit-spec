@@ -40,7 +40,7 @@ modulo $2^{32}$. We use standard mathematical notation for addition,
 subtraction, multiplication, and exponentiation. Division always
 denotes integer division, i.e. any remainder is dropped.
 
-We use the notation $\langle X_0, X_1, ..., X_k \rangle$ to denote
+We use the notation $\langle X_0, X_1, \dots, X_k \rangle$ to denote
 an ordered sequence of values.
 
 $|X|$ denotes the length of the sequence $X$, i.e. the number of
@@ -54,9 +54,9 @@ We also use the following operators:
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = \frac{x}{2^n}$
-- $X || Y$ denotes the concatenation of two sequences $X$ and $Y$,
-  i.e. if $X = \langle X_0, ..., X_N \rangle$ and $Y = \langle Y_0,
-  ..., Y_M \rangle$ then $X || Y = \langle X_0, ..., X_N, Y_0, ..., Y_M
+- $X \mathbin{\|} Y$ denotes the concatenation of two sequences $X$ and $Y$,
+  i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
+  \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
 
 # Splitting
@@ -83,18 +83,18 @@ integer $i$ satisfying each of:
 
 - $i < |X|$
 - $S_{max} \ge i \ge S_{min}$
-- $H(\langle X_{i-W+1}, ..., X_i \rangle) \mod 2^T = 0$
+- $H(\langle X_{i-W+1}, \dots, X_i \rangle) \mod 2^T = 0$
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
 - Otherwise, if $I(X)$ exists,
-  $\operatorname{SPLIT}_C(X) = \langle Y \rangle || \operatorname{SPLIT}_C(Z)$
+  $\operatorname{SPLIT}_C(X) = \langle Y \rangle \mathbin{\|} \operatorname{SPLIT}_C(Z)$
   where
   - $i = I(X)$
   - $N = |X| - 1$
-  - $Y = \langle X_0, ..., X_i \rangle$
-  - $Z = \langle X_{i+1}, ..., X_N \rangle$
+  - $Y = \langle X_0, \dots, X_i \rangle$
+  - $Z = \langle X_{i+1}, \dots, X_N \rangle$
 - Otherwise, $\operatorname{SPLIT}_C(X) = \langle X \rangle$.
 
 # Tree Construction
@@ -118,9 +118,9 @@ A concrete `rrs` checksum is defined by the parameters:
 - $M$, the modulus
 - $c$, the character offset
 
-Given a sequence of bytes $\langle X_0, X_1, ..., X_N \rangle$ and a
+Given a sequence of bytes $\langle X_0, X_1, \dots, X_N \rangle$ and a
 choice of $M$ and $c$, the `rrs` hash of the sub-sequence $\langle X_k,
-..., X_l \rangle$ is $s(k, l)$, where:
+\dots, X_l \rangle$ is $s(k, l)$, where:
 
 $a(k, l) = (\sum_{i = k}^{l} (X_i + c)) \mod M$
 
@@ -151,7 +151,7 @@ $b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + c) + a(k + 1, l + 1)) \mod M$
 
 So, a typical implementation will work like:
 
-- Keep $\langle X_k, ..., X_l \rangle$ in a ring buffer.
+- Keep $\langle X_k, \dots, X_l \rangle$ in a ring buffer.
 - Also store $a(k, l)$ and $b(k, l)$.
 - When $X_{l+1}$ is added to the hash:
   - Dequeue $X_k$ from the ring buffer, and enqueue $X_{l+1}$.
