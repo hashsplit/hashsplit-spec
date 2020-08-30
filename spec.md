@@ -46,7 +46,7 @@ an ordered sequence of values.
 $|X|$ denotes the length of the sequence $X$, i.e. the number of
 elements it contains.
 
-We also use the following operators:
+We also use the following operators and functions:
 
 - $x \wedge y$ denotes the bitwise AND of $x$ and $y$
 - $x \vee y$ denotes the bitwise OR of $x$ and $y$
@@ -58,6 +58,7 @@ We also use the following operators:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
+- $\max(x, y)$ denotes the maximum of $x$ and $y$.
 
 # Splitting
 
@@ -78,24 +79,24 @@ The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W$.
 
 ## Definitions
 
-The "split index" $I(X)$, if it exists, is the smallest
-integer $i$ satisfying each of:
+The "split index" $I(X)$, is either the smallest integer $i$ satisfying
+each of:
 
 - $i < |X|$
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$
 - $H(\langle X_{i-W+1}, \dots, X_i \rangle) \mod 2^T = 0$
 
+...or $\max(|X| - 1, S_{\text{max}})$, if no such $i$ exists.
+
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, if $I(X)$ exists,
-  $\operatorname{SPLIT}_C(X) = \langle Y \rangle \mathbin{\|} \operatorname{SPLIT}_C(Z)$
-  where
+- Otherwise, $\operatorname{SPLIT}_C(X) = \langle Y \rangle \mathbin{\|}
+  \operatorname{SPLIT}_C(Z)$ where
   - $i = I(X)$
   - $N = |X| - 1$
   - $Y = \langle X_0, \dots, X_i \rangle$
   - $Z = \langle X_{i+1}, \dots, X_N \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = \langle X \rangle$.
 
 # Tree Construction
 
