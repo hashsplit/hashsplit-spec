@@ -3,7 +3,7 @@
 This specification describes a mechanism
 for splitting a byte stream into blocks of varying size
 with split boundaries based solely on the content of the input.
-It also describes a mechanism for organizing those blocks into a tree
+It also describes a mechanism for organizing those blocks into a (probabilistically) balanced tree
 whose shape is likewise determined solely by the content of the input.
 
 The general technique has been used by various systems such as:
