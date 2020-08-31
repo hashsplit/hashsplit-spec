@@ -1,8 +1,10 @@
 # Introduction
 
-This specification describes a mechanism for splitting a large
-byte stream into blocks based on their content, and a mechanism for
-organizing those blocks into a balanced tree.
+This specification describes a mechanism
+for splitting a byte stream into blocks of varying size
+with split boundaries based solely on the content of the input.
+It also describes a mechanism for organizing those blocks into a tree
+whose shape is likewise determined solely by the content of the input.
 
 The general technique has been used by various systems such as:
 
@@ -13,7 +15,12 @@ The general technique has been used by various systems such as:
 - [Syncthing](https://syncthing.net/)
 - [Kopia](https://github.com/kopia/kopia)
 
-...and many others. However, the exact functions used by these
+...and many others.
+The technique permits the efficient representation of slightly different versions of the same data
+(e.g. successive revisions of a file in a version control system),
+since changes in one part of the input generally do not affect the boundaries of any but the adjacent blocks.
+
+However, the exact functions used by these
 systems differ in details, and thus do not produce identical splits,
 making interoperability for some use cases more difficult than it
 should be.
@@ -58,7 +65,7 @@ We also use the following operators and functions:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\max(x, y)$ denotes the maximum of $x$ and $y$.
+- $\min(x, y)$ denotes the minimum of $x$ and $y$.
 
 # Splitting
 
@@ -75,18 +82,17 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $W \in U_{32}$, the window size
 - $T \in U_{32}$, the threshold
 
-The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W$.
+The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W > 0$.
 
 ## Definitions
 
-The "split index" $I(X)$, is either the smallest integer $i$ satisfying
-each of:
+The "split index" $I(X)$, is either the smallest integer $i$ satisfying:
 
-- $i < |X|$
-- $S_{\text{max}} \ge i \ge S_{\text{min}}$
+- $i < |X|$ and
+- $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
 - $H(\langle X_{i-W+1}, \dots, X_i \rangle) \mod 2^T = 0$
 
-...or $\max(|X| - 1, S_{\text{max}})$, if no such $i$ exists.
+...or $\min(|X| - 1, S_{\text{max}})$, if no such $i$ exists.
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
@@ -106,7 +112,7 @@ TODO
 
 ## The RRS Rolling Checksums
 
-The `rrs` family of checksums is based on a rolling first used
+The `rrs` family of checksums is based on an algorithm first used
 in [rsync][rsync], and later adapted for use in [bup][bup] and
 [perkeep][perkeep]. `rrs` was originally inspired by the adler-32
 checksum. The name `rrs` was chosen for this specification, and stands
@@ -125,7 +131,7 @@ choice of $M$ and $c$, the `rrs` hash of the sub-sequence $\langle X_k,
 
 $a(k, l) = (\sum_{i = k}^{l} (X_i + c)) \mod M$
 
-$b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + c)) \mod  M$
+$b(k, l) = (\sum_{i = k}^{l} (l - i + 1)(X_i + c)) \mod M$
 
 $s(k, l) = b(k, l) + 2^{16}a(k, l)$
 
@@ -136,7 +142,7 @@ The concrete hash called `rrs1` uses the values:
 - $M = 2^{16}$
 - $c = 31$
 
-`rrs1` is used by both Bup and Perkeep, and implemented by the go
+`rrs1` is used by both Bup and Perkeep, and implemented by the Go
 package `go4.org/rollsum`.
 
 ### Implementation
@@ -150,7 +156,7 @@ $a(k + 1, l + 1) = (a(k, l) - (X_k + c) + (X_{l+1} + c)) \mod M$
 
 $b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + c) + a(k + 1, l + 1)) \mod M$
 
-So, a typical implementation will work like:
+So, a typical implementation will work like this:
 
 - Keep $\langle X_k, \dots, X_l \rangle$ in a ring buffer.
 - Also store $a(k, l)$ and $b(k, l)$.
