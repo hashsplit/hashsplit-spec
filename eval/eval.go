@@ -60,6 +60,11 @@ func main() {
 	}
 }
 
+// Assigning to this variable from inside the timing loop,
+// below,
+// prevents the compiler from optimizing away the call to Digest().
+var digest uint32
+
 func eval(factory func() roller, seed int64) {
 	src := rand.NewSource(seed)
 	rng := rand.New(src)
@@ -72,12 +77,17 @@ func eval(factory func() roller, seed int64) {
 	)
 
 	r := factory()
-	var elapsed time.Duration
-	checkpoint := time.Now()
+	start := time.Now()
 	for i := 0; i < len(megabyte); i++ {
 		r.Roll(megabyte[i])
-		digest := r.Digest()
-		elapsed += time.Since(checkpoint) // stop timer
+		digest = r.Digest()
+	}
+	fmt.Printf("  Elapsed time to roll/digest a megabyte of random data: %s\n", time.Since(start))
+
+	r = factory()
+	for i := 0; i < len(megabyte); i++ {
+		r.Roll(megabyte[i])
+		digest = r.Digest()
 
 		for i := 0; i < 32; i++ {
 			if digest&(1<<i) == 0 {
@@ -89,11 +99,7 @@ func eval(factory func() roller, seed int64) {
 				}
 			}
 		}
-
-		checkpoint = time.Now() // restart timer
 	}
-
-	fmt.Printf("  Elapsed time to roll/digest a megabyte of random data: %s\n", elapsed)
 
 	fmt.Println("  Bits departing from 50% likelihood of being zero:")
 	for i, z := range zeroes {
@@ -113,15 +119,15 @@ func eval(factory func() roller, seed int64) {
 	}
 
 	var (
-		inp      [256]byte
+		inp      = megabyte[:256]
 		differed [32]int
 	)
-	rng.Read(inp[:])
+
 	r = factory()
 	for i := 0; i < len(inp); i++ {
 		r.Roll(inp[i])
 	}
-	digest := r.Digest() // reference value
+	digest = r.Digest() // reference value
 
 	// Try every way to flip a single bit in inp.
 	// Compare the resulting digests with the reference value.
