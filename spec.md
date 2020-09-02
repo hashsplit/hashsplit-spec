@@ -112,24 +112,24 @@ of which is itself a tree. The children of each node are ordered. A
 "leaf" is a node with zero children; for convenience, a tree whose root
 is a leaf node will also be referred to as a "leaf".
 
-Let $C$ be a configuration, and let $T$ and $S$ be positive integers. We
-call $T$ the "threshold", as before, and $S$ the "step". Now for $X \in
-V_8$ we define $\operatorname{TREE}_{T, S, C} (X)$ recursively as
+Let $C$ be a configuration, and let $T$ and $B$ be positive integers. We
+call $T$ the "threshold", as before, and $B$ the "step". Now for $X \in
+V_8$ we define $\operatorname{TREE}_{T, B, C} (X)$ recursively as
 follows:
 
-- If $|X| = 0$, $\operatorname{TREE}_{T, S, C} (X)$ is a leaf labelled
+- If $|X| = 0$, $\operatorname{TREE}_{T, B, C} (X)$ is a leaf labelled
   by $X$
-- Otherwise, if $I_{T, C}(X)$ exists, $\operatorname{TREE}_{T, S, C}
+- Otherwise, if $I_{T, C}(X)$ exists, $\operatorname{TREE}_{T, B, C}
   (X)$ is a node labelled by $X$ whose children in order are leaves
   corresponding to, and labelled by, the entries of
   $\operatorname{SPLIT}_{T, C} (X)$
-- Otherwise, $\operatorname{TREE}_{T, S, C}$ is a node labelled by $X$
-  whose children in order are the subtrees $\operatorname{TREE}_{T, S,
-  C} (Y)$ for each entry $Y$ in $\operatorname{SPLIT}_{T + nS, C} (X)$,
-  where $n$ is the largest integer such that $I_{T + nS, C} (X)$
+- Otherwise, $\operatorname{TREE}_{T, B, C}$ is a node labelled by $X$
+  whose children in order are the subtrees $\operatorname{TREE}_{T, B,
+  C} (Y)$ for each entry $Y$ in $\operatorname{SPLIT}_{T + nB, C} (X)$,
+  where $n$ is the largest integer such that $I_{T + nB, C} (X)$
   exists.
 
-Note the following properties of $\operatorname{TREE}_{T, S, C} (X)$:
+Note the following properties of $\operatorname{TREE}_{T, B, C} (X)$:
 
 - Each non-leaf node has at least two children
 - Each node is labelled by a nonempty element of $V_8$
