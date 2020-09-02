@@ -117,7 +117,7 @@ call $T$ the "threshold", as before, and $B$ the "step". Now for $X \in
 V_8$ we define $\operatorname{TREE}_{T, B, C} (X)$ recursively as
 follows:
 
-- If $I_{T, C} (X)$ does not exist, then $\operatorname{TREE}_{T, B, C}
+- If $I_{T, C} (X) = |X| - 1$, then $\operatorname{TREE}_{T, B, C}
   (X)$ is a leaf labelled by $X$
 - Otherwise, let $n$ be the largest positive integer such that some
   entry of $\operatorname{SPLIT}_{T + nB, C} (X)$, *other than the last
