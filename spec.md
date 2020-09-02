@@ -117,17 +117,15 @@ call $T$ the "threshold", as before, and $B$ the "step". Now for $X \in
 V_8$ we define $\operatorname{TREE}_{T, B, C} (X)$ recursively as
 follows:
 
-- If $|X| = 0$, $\operatorname{TREE}_{T, B, C} (X)$ is a leaf labelled
-  by $X$
-- Otherwise, if $I_{T, C}(X)$ exists, $\operatorname{TREE}_{T, B, C}
-  (X)$ is a node labelled by $X$ whose children in order are leaves
-  corresponding to, and labelled by, the entries of
-  $\operatorname{SPLIT}_{T, C} (X)$
-- Otherwise, $\operatorname{TREE}_{T, B, C}$ is a node labelled by $X$
-  whose children in order are the subtrees $\operatorname{TREE}_{T, B,
-  C} (Y)$ for each entry $Y$ in $\operatorname{SPLIT}_{T + nB, C} (X)$,
-  where $n$ is the largest integer such that $I_{T + nB, C} (X)$
-  exists.
+- If $I_{T, C} (X)$ does not exist, then $\operatorname{TREE}_{T, B, C}
+  (X)$ is a leaf labelled by $X$
+- Otherwise, let $n$ be the largest positive integer such that some
+  entry of $\operatorname{SPLIT}_{T + nB, C} (X)$, *other than the last
+  entry*, has length less than $S_{\text{max}}$, or zero if no such
+  positive integer exists. Then $\operatorname{TREE}_{T, B, C} (X)$ is a
+  node labelled by $X$ whose children in order are the subtrees
+  $\operatorname{TREE}_{T, B, C} (Y)$ for each entry $Y$ of
+  $\operatorname{SPLIT}_{T + nB, C} (X)$.
 
 Note the following properties of $\operatorname{TREE}_{T, B, C} (X)$:
 
@@ -136,7 +134,7 @@ Note the following properties of $\operatorname{TREE}_{T, B, C} (X)$:
 - The label of any non-leaf node is equal to the concatenation in order
   of the labels of its children
 - The labels of the leaf nodes in their natural order (inherited from
-  the inorder traversal of the tree) are exactly the
+  the depth-first traversal of the tree) are exactly the
   entries of $\operatorname{SPLIT}_{T, C} (X)$.
 
 # Rolling Hash Functions
