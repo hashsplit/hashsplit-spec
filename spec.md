@@ -86,23 +86,23 @@ The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W > 0$.
 
 ## Definitions
 
-The "split index" $I(X)$, is either the smallest integer $i$ satisfying:
+The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ satisfying:
 
 - $i < |X|$ and
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
-- $H(\langle X_{i-W+1}, \dots, X_i \rangle) \mod 2^T = 0$
+- $H(\langle X_{\max(0, i-W)}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
-...or $\min(|X| - 1, S_{\text{max}})$, if no such $i$ exists.
+...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists.
+
+The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = \langle Y \rangle \mathbin{\|}
-  \operatorname{SPLIT}_C(Z)$ where
+- Otherwise, $\operatorname{SPLIT}_C(X) = P(X) \mathbin{\|} \operatorname{SPLIT}_C(Y)$ where
   - $i = I(X)$
-  - $N = |X| - 1$
-  - $Y = \langle X_0, \dots, X_i \rangle$
-  - $Z = \langle X_{i+1}, \dots, X_N \rangle$
+  - $N = |X|$
+  - $Y = \langle X_i, \dots, X_{N-1} \rangle$
 
 # Tree Construction
 
