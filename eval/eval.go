@@ -105,7 +105,7 @@ func eval(factory func() roller, seed int64) {
 				}
 			}
 		}
-		if digest%(1<<13) == 0 {
+		if digest%(1<<*threshold) == 0 {
 			size := i - lastSplit
 			allSplits = append(allSplits, size)
 			lastSplit = i
