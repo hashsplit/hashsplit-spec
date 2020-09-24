@@ -90,19 +90,18 @@ The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ sa
 
 - $i < |X|$ and
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
-- $H(\langle X_{\max(0, i-W)}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
+- $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
 ...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists.
 
 The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
+The “remainder” $R(X)$ of a non-empty sequence $X$ is $\langle X_{I(X)}, \dots, X_{|X|-1} \rangle$.
+
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = P(X) \mathbin{\|} \operatorname{SPLIT}_C(Y)$ where
-  - $i = I(X)$
-  - $N = |X|$
-  - $Y = \langle X_i, \dots, X_{N-1} \rangle$
+- Otherwise, $\operatorname{SPLIT}_C(X) = P(X) \mathbin{\|} \operatorname{SPLIT}_C(R(X))$
 
 # Tree Construction
 
