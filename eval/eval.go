@@ -22,6 +22,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"hash/crc32"
 	"math"
 	"math/rand"
 	"sort"
@@ -203,6 +204,7 @@ var hashes = map[string]func() roller{
 	"bozo32":    newBozo32(64),
 	"buzhash32": newBuzhash32(64),
 	"buzhash64": newBuzhash64(64),
+	"crc32":     newCRC32(64),
 	// "rabinkarp64": newRabinKarp64(64), // TODO: debug why this seems to cause eval to hang
 }
 
@@ -304,6 +306,32 @@ func (w *buzhash64wrapper) Roll(b byte) {
 
 func (w *buzhash64wrapper) Digest() uint32 {
 	return uint32(w.b.Sum64())
+}
+
+// crc32 (not strictly a "rolling" hash)
+
+type crc32wrapper struct {
+	buf  []byte // circular buffer
+	next int    // position in buf of next write
+}
+
+func newCRC32(windowSize int) func() roller {
+	return func() roller {
+		return &crc32wrapper{buf: make([]byte, windowSize)}
+	}
+}
+
+func (w *crc32wrapper) Roll(b byte) {
+	w.buf[w.next] = b
+	w.next++
+	w.next %= len(w.buf)
+}
+
+func (w *crc32wrapper) Digest() uint32 {
+	buf := make([]byte, len(w.buf))
+	copy(buf[:], w.buf[w.next:])
+	copy(buf[len(w.buf)-w.next:], w.buf[:])
+	return crc32.ChecksumIEEE(buf)
 }
 
 // rabinkarp64
