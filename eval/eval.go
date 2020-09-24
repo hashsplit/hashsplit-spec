@@ -23,7 +23,9 @@ import (
 	"flag"
 	"fmt"
 	"hash/crc32"
+	"math"
 	"math/rand"
+	"sort"
 	"time"
 
 	"github.com/chmduquesne/rollinghash/adler32"
@@ -39,11 +41,13 @@ type roller interface {
 	Digest() uint32
 }
 
+var (
+	all       = flag.Bool("all", false, "evaluate all hashes")
+	seed      = flag.Int64("seed", time.Now().Unix(), "RNG seed")
+	threshold = flag.Int("threshold", 13, "Threshold for split")
+)
+
 func main() {
-	var (
-		all  = flag.Bool("all", false, "evaluate all hashes")
-		seed = flag.Int64("seed", time.Now().Unix(), "RNG seed")
-	)
 	flag.Parse()
 
 	fmt.Printf("Using RNG seed %d\n", *seed)
@@ -86,6 +90,8 @@ func eval(factory func() roller, seed int64) {
 	fmt.Printf("  Elapsed time to roll/digest a megabyte of random data: %s\n", time.Since(start))
 
 	r = factory()
+	lastSplit := 0
+	allSplits := []int{}
 	for i := 0; i < len(megabyte); i++ {
 		r.Roll(megabyte[i])
 		digest = r.Digest()
@@ -99,6 +105,11 @@ func eval(factory func() roller, seed int64) {
 					correlations[32*i+j]++
 				}
 			}
+		}
+		if digest%(1<<13) == 0 {
+			size := i - lastSplit
+			allSplits = append(allSplits, size)
+			lastSplit = i
 		}
 	}
 
@@ -159,6 +170,31 @@ func eval(factory func() roller, seed int64) {
 		if frac < .49 || frac > .51 {
 			fmt.Printf("    Bit %d varied %.1f%% of the time\n", i, 100.0*frac)
 		}
+	}
+
+	numSplits := len(allSplits)
+	fmt.Printf("  Number of splits in 1MiB with threshold = %d: %d\n", *threshold, numSplits)
+	if numSplits != 0 {
+		mean := len(megabyte) / numSplits
+		fmt.Printf("  Mean split size = %d bytes\n", mean)
+		sort.Ints(allSplits)
+		median := allSplits[numSplits/2]
+		fmt.Printf("  Median split size = %d bytes\n", median)
+		individualVariance := make([]int, numSplits)
+		copy(individualVariance, allSplits)
+		for i := 0; i < numSplits; i++ {
+			individualVariance[i] -= mean
+			individualVariance[i] *= individualVariance[i]
+		}
+		sumOfSquares := 0
+		for i := 0; i < numSplits; i++ {
+			sumOfSquares += individualVariance[i]
+		}
+		variance := float64(sumOfSquares) / float64(numSplits-1)
+		stdDeviation := math.Sqrt(variance)
+
+		fmt.Printf("  Variance of split size = %f\n", variance)
+		fmt.Printf("  Standard deviation of split size = %f\n", stdDeviation)
 	}
 }
 
