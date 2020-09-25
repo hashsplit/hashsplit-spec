@@ -21,7 +21,5 @@ can easily make use of that information.
 
 Install [pandoc](https://pandoc.org) and type `make`.
 
-There is also a built PDF version of the WIP spec [here][1]
-
 [html]: https://hashsplit.github.io/spec.html
 [pdf]: https://hashsplit.github.io/spec.pdf
