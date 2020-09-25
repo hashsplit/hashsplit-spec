@@ -1,8 +1,7 @@
 WIP formal spec for a version of the content-based splitting algorithms
 used by systems such as perkeep, bup, kopia, asuran, and others.
 
-Right now all that's here is a first pass at specifying one rolling hash
-function, which we've named `rrs1`.
+The spec is available in [HTML][html] and [PDF][pdf] formats.
 
 # Why
 
@@ -24,4 +23,5 @@ Install [pandoc](https://pandoc.org) and type `make`.
 
 There is also a built PDF version of the WIP spec [here][1]
 
-[1]: https://raw.githubusercontent.com/hashsplit/hashsplit-spec/gh-pages/spec.pdf
+[html]: https//hashsplit.github.io/spec.html
+[pdf]: https//hashsplit.github.io/spec.pdf
