@@ -101,7 +101,7 @@ The “remainder” $R(X)$ of a non-empty sequence $X$ is $\langle X_{I(X)}, \do
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = P(X) \mathbin{\|} \operatorname{SPLIT}_C(R(X))$
+- Otherwise, $\operatorname{SPLIT}_C(X) = \langle P(X) \rangle \mathbin{\|} \operatorname{SPLIT}_C(R(X))$
 
 # Tree Construction
 
