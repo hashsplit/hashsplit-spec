@@ -18,7 +18,7 @@ jobs:
         run: |
           make
       - name: Deploy
-        with:
+        env:
           ACCESS_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
           USER: zenhack
         run: |
