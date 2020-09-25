@@ -26,6 +26,8 @@ jobs:
           cp -r build/* $dir/
           cd $dir
           git init
+          git config user.name 'GitHub Actions'
+          git config user.email 'spam@example.org'
           git add .
           git commit -m 'Deploy to GitHub Pages'
           git remote add deploy https://${USER}:${ACCESS_TOKEN}@github.com/hashsplit/hashsplit.github.io
