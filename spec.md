@@ -117,11 +117,12 @@ But while only a small number of chunks may change,
 the _sequence_ of chunks may get totally rewritten,
 as when a difference exists near the beginning of $X$ and $Y$
 and all subsequent chunks have to “shift position” to the left or right.
+Representing the two different sequences may therefore require space
+that is linear in the size of $X$ and $Y$.
 
-This section describes
-an alternate technique for representing
-the sequence of chunks produced by splitting.
-The chunks are organized in a tree structure whose shape,
+We can do better,
+requiring space that is only _logarithmic_ in the size of $X$ and $Y$,
+by organizing the chunks in a tree whose shape,
 like the chunk boundaries themselves,
 is determined by the content of the input.
 The trees representing two slightly different versions of the same input
