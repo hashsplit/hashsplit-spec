@@ -105,20 +105,18 @@ We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 # Tree Construction
 
-(TODO: define “chunk”)
+If sequence $X$ and sequence $Y$ are largely the same,
+$\operatorname{SPLIT}_C$ will produce mostly the same chunks,
+choosing the same locations for chunk boundaries
+except in the vicinity of whatever differences there are
+between $X$ and $Y$.
 
-The chunks produced
-by splitting two different versions
-of an input stream that is otherwise the same
-will differ only in the chunks that are in the vicinity of the change.
-The remaining chunks can be reused
-to represent both versions of the input.
-
-This has obvious benefits for storage and bandwidth.
+This has obvious benefits for storage and bandwidth,
+as the same chunks can represent both $X$ and $Y$ with few exceptions.
 But while only a small number of chunks may change,
-the _sequence_ of chunks may get totally rewritten
-(as when the change happens early in the input,
-and all chunks have to shift position to the right).
+the _sequence_ of chunks may get totally rewritten,
+as when a difference exists near the beginning of $X$ and $Y$
+and all subsequent chunks have to “shift position” to the left or right.
 
 This section describes
 an alternate technique for representing
@@ -131,7 +129,48 @@ will differ only in the subtrees in the vicinity of the differences.
 
 ## Definitions
 
-xxx
+The “level” $L(X)$ of a sequence $X$ is $Q - T$,
+where $Q$ is the largest integer such that
+
+- $Q <= 32$ and
+- $H(P(X)) \mod 2^Q = 0$
+
+(i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
+
+A “node” in a hashsplit tree
+is a pair $\langle D, C \rangle$
+where $D$ is the node’s “depth”
+and $C$ is a sequence of children.
+The children of a node at depth 0 are chunks
+(i.e., subsequences of the input).
+The children of a node at depth $D > 0$ are nodes at depth $D - 1$.
+
+The function $\operatorname{Children}(N)$ on a node $N = \langle D, C \rangle$ produces $C$
+(the sequence of children).
+
+## Algorithm
+
+To compute a hashsplit tree from sequence $X$,
+compute its “root node” as follows.
+
+1. Let $N_0$ be $\langle 0, \langle\rangle \rangle$ (i.e., a node at depth 0 with no children).
+2. If $|X| = 0$, then:
+    a. Let $d$ be the largest depth such that $N_d$ exists.
+    b. If $|\operatorname{Children}(N_0)| > 0$, then:
+        i. For each integer $i$ in $[0 .. d]$, “close” $N_i$.
+        ii. $d \leftarrow d+1$.
+    c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
+    d. Terminate with $N_d$ as the root node.
+3. Otherwise, $N_0 \leftarrow \langle 0, \operatorname{Children}(N_0) \mathbin{|} \langle P(X) \rangle \rangle$ (i.e., add $P(X)$ to the list of children in $N_0$).
+4. For each integer $i$ in $[0 .. L(X))$, “close” the node $N_i$ (see below).
+5. $X \leftarrow R(X)$.
+6. Go to step 2.
+
+To “close” a node $N_i$:
+
+1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $\langle i+1, \langle\rangle \rangle$ (i.e., a node at depth ${i + 1}$ with no children).
+2. $N_{i+1} \leftarrow \langle i+1, \operatorname{Children}(N_{i+1}) \mathbin{|} \langle N_i \rangle \rangle$ (i.e., add $N_i$ as a child to $N_{i+1}$).
+3. Let $N_i$ be $\langle i, \langle\rangle \rangle$ (i.e., new node at depth $i$ with no children).
 
 # Rolling Hash Functions
 
