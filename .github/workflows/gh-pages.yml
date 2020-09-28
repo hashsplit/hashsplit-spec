@@ -18,12 +18,17 @@ jobs:
         run: |
           make
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@3.5.9
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: build
-          # PDFs can get a bit large compared to sources;
-          # don't retain the history for the builds (we
-          # can always rebuild from source):
-          SINGLE_COMMIT: true
+        env:
+          ACCESS_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+          USER: zenhack
+        run: |
+          dir=$(mktemp -d)
+          cp -r build/* $dir/
+          cd $dir
+          git init
+          git config user.name 'GitHub Actions'
+          git config user.email 'spam@example.org'
+          git add .
+          git commit -m 'Deploy to GitHub Pages'
+          git remote add deploy https://${USER}:${ACCESS_TOKEN}@github.com/hashsplit/hashsplit.github.io
+          git push -f deploy master
