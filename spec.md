@@ -133,20 +133,20 @@ will differ only in the subtrees in the vicinity of the differences.
 The “level” $L(X)$ of a sequence $X$ is $Q - T$,
 where $Q$ is the largest integer such that
 
-- $Q <= 32$ and
+- $Q \le 32$ and
 - $H(P(X)) \mod 2^Q = 0$
 
 (i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
 
 A “node” in a hashsplit tree
-is a pair $\langle D, C \rangle$
+is a pair $(D, C)$
 where $D$ is the node’s “depth”
 and $C$ is a sequence of children.
 The children of a node at depth 0 are chunks
 (i.e., subsequences of the input).
 The children of a node at depth $D > 0$ are nodes at depth $D - 1$.
 
-The function $\operatorname{Children}(N)$ on a node $N = \langle D, C \rangle$ produces $C$
+The function $\operatorname{Children}(N)$ on a node $N = (D, C)$ produces $C$
 (the sequence of children).
 
 ## Algorithm
@@ -154,24 +154,24 @@ The function $\operatorname{Children}(N)$ on a node $N = \langle D, C \rangle$ p
 To compute a hashsplit tree from sequence $X$,
 compute its “root node” as follows.
 
-1. Let $N_0$ be $\langle 0, \langle\rangle \rangle$ (i.e., a node at depth 0 with no children).
+1. Let $N_0$ be $(0, \langle\rangle)$ (i.e., a node at depth 0 with no children).
 2. If $|X| = 0$, then:
     a. Let $d$ be the largest depth such that $N_d$ exists.
     b. If $|\operatorname{Children}(N_0)| > 0$, then:
         i. For each integer $i$ in $[0 .. d]$, “close” $N_i$.
-        ii. $d \leftarrow d+1$.
-    c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
-    d. Terminate with $N_d$ as the root node.
-3. Otherwise, $N_0 \leftarrow \langle 0, \operatorname{Children}(N_0) \mathbin{|} \langle P(X) \rangle \rangle$ (i.e., add $P(X)$ to the list of children in $N_0$).
+        ii. Set $d \leftarrow d+1$.
+    c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, set $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
+    d. **Terminate** with $N_d$ as the root node.
+3. Otherwise, set $N_0 \leftarrow (0, \operatorname{Children}(N_0) \mathbin{\|} \langle P(X) \rangle)$ (i.e., add $P(X)$ to the list of children in $N_0$).
 4. For each integer $i$ in $[0 .. L(X))$, “close” the node $N_i$ (see below).
-5. $X \leftarrow R(X)$.
+5. Set $X \leftarrow R(X)$.
 6. Go to step 2.
 
 To “close” a node $N_i$:
 
-1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $\langle i+1, \langle\rangle \rangle$ (i.e., a node at depth ${i + 1}$ with no children).
-2. $N_{i+1} \leftarrow \langle i+1, \operatorname{Children}(N_{i+1}) \mathbin{|} \langle N_i \rangle \rangle$ (i.e., add $N_i$ as a child to $N_{i+1}$).
-3. Let $N_i$ be $\langle i, \langle\rangle \rangle$ (i.e., new node at depth $i$ with no children).
+1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $(i+1, \langle\rangle)$ (i.e., a node at depth ${i + 1}$ with no children).
+2. Set $N_{i+1} \leftarrow (i+1, \operatorname{Children}(N_{i+1}) \mathbin{\|} \langle N_i \rangle)$ (i.e., add $N_i$ as a child to $N_{i+1}$).
+3. Let $N_i$ be $(i, \langle\rangle)$ (i.e., new node at depth $i$ with no children).
 
 # Rolling Hash Functions
 
