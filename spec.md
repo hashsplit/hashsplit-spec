@@ -65,7 +65,7 @@ We also use the following operators and functions:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\min(x, y)$ denotes the minimum of $x$ and $y$.
+- $\operatorname{min}(x, y)$ denotes the minimum of $x$ and $y$.
 
 # Splitting
 
@@ -92,7 +92,7 @@ The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ sa
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
 - $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
-...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists.
+...or $\operatorname{min}(|X|, S_{\text{max}})$, if no such $i$ exists.
 
 The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
@@ -130,13 +130,28 @@ will differ only in the subtrees in the vicinity of the differences.
 
 ## Definitions
 
+The “hashval” $V(X)$ of a sequence $X$ is:
+
+$H(\langle X_{\operatorname{max}(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
+
+(i.e., the hash of the last $W$ bytes of $X$).
+
 The “level” $L(X)$ of a sequence $X$ is $Q - T$,
 where $Q$ is the largest integer such that
 
 - $Q \le 32$ and
-- $H(P(X)) \mod 2^Q = 0$
+- $V(P(X)) \mod 2^Q = 0$
 
 (i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
+
+(Note:
+When $|R(X)| > 0$,
+$L(X)$ is non-negative,
+because $P(X)$ is defined in terms of a hash with $T$ trailing zeroes.
+But when $|R(X)| = 0$,
+that hash may have fewer than $T$ trailing zeroes,
+and so $L(X)$ may be negative.
+This makes no difference to the algorithm below, however.)
 
 A “node” in a hashsplit tree
 is a pair $(D, C)$
