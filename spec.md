@@ -65,7 +65,7 @@ We also use the following operators and functions:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\min(x, y)$ denotes the minimum of $x$ and $y$.
+- $\operatorname{min}(x, y)$ denotes the minimum of $x$ and $y$.
 
 # Splitting
 
@@ -92,7 +92,7 @@ The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ sa
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
 - $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
-...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists.
+...or $\operatorname{min}(|X|, S_{\text{max}})$, if no such $i$ exists.
 
 The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
@@ -105,7 +105,88 @@ We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 # Tree Construction
 
-TODO
+If sequence $X$ and sequence $Y$ are largely the same,
+$\operatorname{SPLIT}_C$ will produce mostly the same chunks,
+choosing the same locations for chunk boundaries
+except in the vicinity of whatever differences there are
+between $X$ and $Y$.
+
+This has obvious benefits for storage and bandwidth,
+as the same chunks can represent both $X$ and $Y$ with few exceptions.
+But while only a small number of chunks may change,
+the _sequence_ of chunks may get totally rewritten,
+as when a difference exists near the beginning of $X$ and $Y$
+and all subsequent chunks have to “shift position” to the left or right.
+Representing the two different sequences may therefore require space
+that is linear in the size of $X$ and $Y$.
+
+We can do better,
+requiring space that is only _logarithmic_ in the size of $X$ and $Y$,
+by organizing the chunks in a tree whose shape,
+like the chunk boundaries themselves,
+is determined by the content of the input.
+The trees representing two slightly different versions of the same input
+will differ only in the subtrees in the vicinity of the differences.
+
+## Definitions
+
+The “hashval” $V(X)$ of a sequence $X$ is:
+
+$H(\langle X_{\operatorname{max}(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
+
+(i.e., the hash of the last $W$ bytes of $X$).
+
+The “level” $L(X)$ of a sequence $X$ is $Q - T$,
+where $Q$ is the largest integer such that
+
+- $Q \le 32$ and
+- $V(P(X)) \mod 2^Q = 0$
+
+(i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
+
+(Note:
+When $|R(X)| > 0$,
+$L(X)$ is non-negative,
+because $P(X)$ is defined in terms of a hash with $T$ trailing zeroes.
+But when $|R(X)| = 0$,
+that hash may have fewer than $T$ trailing zeroes,
+and so $L(X)$ may be negative.
+This makes no difference to the algorithm below, however.)
+
+A “node” in a hashsplit tree
+is a pair $(D, C)$
+where $D$ is the node’s “depth”
+and $C$ is a sequence of children.
+The children of a node at depth 0 are chunks
+(i.e., subsequences of the input).
+The children of a node at depth $D > 0$ are nodes at depth $D - 1$.
+
+The function $\operatorname{Children}(N)$ on a node $N = (D, C)$ produces $C$
+(the sequence of children).
+
+## Algorithm
+
+To compute a hashsplit tree from sequence $X$,
+compute its “root node” as follows.
+
+1. Let $N_0$ be $(0, \langle\rangle)$ (i.e., a node at depth 0 with no children).
+2. If $|X| = 0$, then:
+    a. Let $d$ be the largest depth such that $N_d$ exists.
+    b. If $|\operatorname{Children}(N_0)| > 0$, then:
+        i. For each integer $i$ in $[0 .. d]$, “close” $N_i$.
+        ii. Set $d \leftarrow d+1$.
+    c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, set $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
+    d. **Terminate** with $N_d$ as the root node.
+3. Otherwise, set $N_0 \leftarrow (0, \operatorname{Children}(N_0) \mathbin{\|} \langle P(X) \rangle)$ (i.e., add $P(X)$ to the list of children in $N_0$).
+4. For each integer $i$ in $[0 .. L(X))$, “close” the node $N_i$ (see below).
+5. Set $X \leftarrow R(X)$.
+6. Go to step 2.
+
+To “close” a node $N_i$:
+
+1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $(i+1, \langle\rangle)$ (i.e., a node at depth ${i + 1}$ with no children).
+2. Set $N_{i+1} \leftarrow (i+1, \operatorname{Children}(N_{i+1}) \mathbin{\|} \langle N_i \rangle)$ (i.e., add $N_i$ as a child to $N_{i+1}$).
+3. Let $N_i$ be $(i, \langle\rangle)$ (i.e., new node at depth $i$ with no children).
 
 # Rolling Hash Functions
 
