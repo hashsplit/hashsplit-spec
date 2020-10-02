@@ -65,7 +65,7 @@ We also use the following operators and functions:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\operatorname{min}(x, y)$ denotes the minimum of $x$ and $y$.
+- $\min(x, y)$ denotes the minimum of $x$ and $y$.
 
 # Splitting
 
@@ -92,7 +92,7 @@ The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ sa
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
 - $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
-...or $\operatorname{min}(|X|, S_{\text{max}})$, if no such $i$ exists.
+...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists.
 
 The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
@@ -130,9 +130,12 @@ will differ only in the subtrees in the vicinity of the differences.
 
 ## Definitions
 
+A “chunk” $K_{C,i}(X)$ is a member of the sequence produced by $\operatorname{SPLIT}_C(X)$.
+The index $i$ lies in the range $[0 .. |\operatorname{SPLIT}_C(X)|)$.
+
 The “hashval” $V(X)$ of a sequence $X$ is:
 
-$H(\langle X_{\operatorname{max}(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
+$H(\langle X_{\max(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
 
 (i.e., the hash of the last $W$ bytes of $X$).
 
@@ -165,6 +168,29 @@ The function $\operatorname{Children}(N)$ on a node $N = (D, C)$ produces $C$
 (the sequence of children).
 
 ## Algorithm
+
+### Algebraic description
+
+Let function $F_C(X, D, i)$ on a sequence $X$, a depth $D$, and an index $i$ produce the $i^\text{th}$ node at level $D$.
+
+$F_C(X, 0, 0) = (0, \langle K_{C,0}(X), \dots, K_{C,b}(X) \rangle)$
+where $b$ is the smallest integer such that $L(K_{C,b}(X)) > 0$,
+or $|SPLIT_C(X)|-1$ if no such integer exists.
+
+$F_C(X, 0, n+1) = (0, \langle K_{C,\sigma}, \dots, K_{C,b}(X) \rangle)$
+where:
+
+- $\sigma = \sum_{i=0}^{n}|Children(F_C(X, 0, i))|$ and
+- $b$ is the smallest integer such that $L(K_{C,b}(X)) > 0$, or $|SPLIT_C(X)|-1$ if no such integer exists (as before).
+
+$F_C(X, D+1, 0) = (D, \langle F_C(X, D, 0), \dots, F_C(X, D, b) \rangle)$
+where $b$ is the smallest integer such that $L(xxxrightmostleaf(F_C(X, D, b)))$ > D$,
+or xxx if no such integer exists.
+
+The root of the tree is $F_C(X, D, 0)$ where $D$ is the largest integer such that $|Children(F_C(X, D, 0))| > 1$,
+or 0 if no such integer exists.
+
+### Procedural description
 
 To compute a hashsplit tree from sequence $X$,
 compute its “root node” as follows.
