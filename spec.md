@@ -82,7 +82,8 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $W \in U_{32}$, the window size
 - $T \in U_{32}$, the threshold
 
-The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W > 0$.
+The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$ and $W >
+0$.
 
 ## Definitions
 
@@ -92,7 +93,8 @@ The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ sa
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
 - $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
 
-...or $\operatorname{min}(|X|, S_{\text{max}})$, if no such $i$ exists.
+...or $\operatorname{min}(|X|, S_{\text{max}})$, if no such $i$ exists. For the
+purposes of this definition we set $X_i = 0$ for $i < 0$.
 
 The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
 
@@ -230,7 +232,7 @@ package `go4.org/rollsum`.
 #### Rolling
 
 `rrs` is a family of _rolling_ hashes. We can compute hashes in a
-rolling fashion by taking advantage of the fact that:
+rolling fashion by taking advantage of the fact that, for $l \geq k \geq 0$:
 
 $a(k + 1, l + 1) = (a(k, l) - (X_k + c) + (X_{l+1} + c)) \mod M$
 
@@ -245,6 +247,9 @@ So, a typical implementation will work like this:
   - Use $X_k$, $X_{l+1}$, and the stored $a(k, l)$ and $b(k, l)$ to compute
     $a(k + 1, l + 1)$ and $b(k + 1, l + 1)$. Then use those values to
     compute $s(k + 1, l + 1)$ and also store them for future use.
+
+In all cases the ring buffer should initially contain all zero bytes, reflecting
+the use of $X_i = 0$ for $i < 0$ in ["Splitting"](#splitting), above.
 
 #### Choice of M
 
