@@ -87,7 +87,8 @@ The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$ and $W >
 
 ## Definitions
 
-The "split index" $I(X)$ of a sequence $X$ is either the smallest integer $i$ satisfying:
+The "split index" $I(X)$ of a sequence $X$ is either the smallest
+non-negative integer $i$ satisfying:
 
 - $i \le |X|$ and
 - $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
