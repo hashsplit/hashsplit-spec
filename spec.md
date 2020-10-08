@@ -79,13 +79,13 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $S_{\text{min}} \in U_{32}$, the minimum split size
 - $S_{\text{max}} \in U_{32}$, the maximum split size
 - $H \in V_8 \rightarrow U_{32}$, the hash function
-- $W \in U_{32}$, the window size
 - $T \in U_{32}$, the threshold
 
-The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$ and $W >
-0$.
+The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$.
 
 ## Definitions
+
+We define the constant $W$, which we call the "window size," to be 64.
 
 The "split index" $I(X)$ of a sequence $X$ is either the smallest
 non-negative integer $i$ satisfying:
