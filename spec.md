@@ -157,15 +157,27 @@ and so $L(X)$ may be negative.
 This makes no difference to the algorithm below, however.)
 
 A “node” in a hashsplit tree
-is a pair $(D, C)$
+is a pair $(D, S)$
 where $D$ is the node’s “depth”
-and $C$ is a sequence of children.
+and $S$ is a sequence of children.
 The children of a node at depth 0 are chunks
 (i.e., subsequences of the input).
 The children of a node at depth $D > 0$ are nodes at depth $D - 1$.
 
-The function $\operatorname{Children}(N)$ on a node $N = (D, C)$ produces $C$
+The function $\operatorname{Children}(N)$
+on a node $N = (D, S)$
+produces $S$
 (the sequence of children).
+
+The function $\operatorname{Rightmost}(N)$
+on a node $N = (D, \langle S_0, \dots, S_b \rangle)$
+produces the “rightmost leaf chunk”
+defined recursively as follows:
+
+- If $D = 0$,
+  $\operatorname{Rightmost}(N) = K_{C,b}$
+- Otherwise, $\operatorname{Rightmost}(N) = \operatorname{Rightmost}(S_b)$
+
 
 ## Algorithm
 
@@ -173,22 +185,56 @@ The function $\operatorname{Children}(N)$ on a node $N = (D, C)$ produces $C$
 
 Let function $F_C(X, D, i)$ on a sequence $X$, a depth $D$, and an index $i$ produce the $i^\text{th}$ node at level $D$.
 
-$F_C(X, 0, 0) = (0, \langle K_{C,0}(X), \dots, K_{C,b}(X) \rangle)$
-where $b$ is the smallest integer such that $L(K_{C,b}(X)) > 0$,
-or $|SPLIT_C(X)|-1$ if no such integer exists.
-
-$F_C(X, 0, n+1) = (0, \langle K_{C,\sigma}, \dots, K_{C,b}(X) \rangle)$
-where:
-
-- $\sigma = \sum_{i=0}^{n}|Children(F_C(X, 0, i))|$ and
-- $b$ is the smallest integer such that $L(K_{C,b}(X)) > 0$, or $|SPLIT_C(X)|-1$ if no such integer exists (as before).
-
-$F_C(X, D+1, 0) = (D, \langle F_C(X, D, 0), \dots, F_C(X, D, b) \rangle)$
-where $b$ is the smallest integer such that $L(xxxrightmostleaf(F_C(X, D, b)))$ > D$,
-or xxx if no such integer exists.
-
-The root of the tree is $F_C(X, D, 0)$ where $D$ is the largest integer such that $|Children(F_C(X, D, 0))| > 1$,
+Then the root of the tree is $F_C(X, D, 0)$
+where $D$ is the largest integer such that $|Children(F_C(X, D, 0))| > 1$,
 or 0 if no such integer exists.
+
+$F_C$ is defined recursively as follows:
+
+- $F_C(X, 0, 0) = (0, \langle K_{C,0}(X), \dots, K_{C,b}(X) \rangle)$
+  where $b$ is:
+
+  - the smallest integer such that
+    $L(K_{C,b}(X)) > 0$, if one exists;
+    otherwise
+  - $|\operatorname{SPLIT}_C(X)|-1$
+
+- $F_C(X, 0, n+1)$ is:
+
+  - **undefined** when $\sigma \ge |\operatorname{SPLIT}_C(X)|-1$; otherwise
+  - $(0, \langle K_{C,\sigma}, \dots, K_{C,b}(X) \rangle)$
+
+  where:
+
+  - $\sigma = \sum_{i=0}^{n}|Children(F_C(X, 0, i))|$ and
+  - $b$ is:
+      - the smallest integer such that
+        $L(K_{C,b}(X)) > 0$, if one exists;
+        otherwise
+      - $|\operatorname{SPLIT}_C(X)|-1$.
+
+- $F_C(X, D+1, 0) = (D+1, \langle F_C(X, D, 0), \dots, F_C(X, D, b) \rangle)$
+  where $b$ is:
+
+  - the smallest integer such that
+    $L(\operatorname{Rightmost}(F_C(X, D, b))) > D$, if one exists;
+    otherwise
+  - the integer such that
+    $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+
+- $F_C(X, D+1, n+1)$ is:
+
+  - **undefined** when $F_C(X, D, \sigma)$ is undefined; otherwise
+  - $(D+1, \langle F_C(X, D, \sigma), \dots, F_C(X, D, b) \rangle)$
+
+  where:
+
+  - $\sigma = \sum_{i=0}^{n}|Children(F_C(X, D+1, i))|$ and
+  - $b$ is the smallest integer such that $b \ge \sigma$ and either:
+      - $L(\operatorname{Rightmost}(F_C(X, D, b))) > D$, if one exists;
+        otherwise
+      - the integer such that
+        $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
 
 ### Procedural description
 
@@ -199,7 +245,7 @@ compute its “root node” as follows.
 2. If $|X| = 0$, then:
     a. Let $d$ be the largest depth such that $N_d$ exists.
     b. If $|\operatorname{Children}(N_0)| > 0$, then:
-        i. For each integer $i$ in $[0 .. d]$, “close” $N_i$.
+        i. For each integer $i$ in $[0 .. d]$, “close” $N_i$ (see below).
         ii. Set $d \leftarrow d+1$.
     c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, set $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
     d. **Terminate** with $N_d$ as the root node.
