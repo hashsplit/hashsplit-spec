@@ -153,8 +153,10 @@ where $Q$ is the largest integer such that
 (Note:
 When $|R(X)| > 0$,
 $L(X)$ is non-negative,
-because $P(X)$ is defined in terms of a hash with $T$ trailing zeroes.
-But when $|R(X)| = 0$,
+because $P(X)$ is defined in terms of a hash with $T$ trailing zeroes
+(except when the split is triggered by hitting $S_\text{max}$).
+But when $|R(X)| = 0$
+(or in the $S_\text{max}$ case),
 that hash may have fewer than $T$ trailing zeroes,
 and so $L(X)$ may be negative.
 This makes no difference to the algorithm below, however.)
@@ -184,12 +186,17 @@ defined recursively as follows:
 
 ## Algorithm
 
+This section contains two descriptions of hashsplit trees:
+an algebraic description for formal reasoning,
+and a procedural description for practical construction.
+
 ### Algebraic description
 
 Let function $F_C(X, D, i)$ on a sequence $X$, a depth $D$, and an index $i$ produce the $i^\text{th}$ node at level $D$.
 
 Then the root of the tree is $F_C(X, D, 0)$
-where $D$ is the largest integer such that $|Children(F_C(X, D, 0))| > 1$,
+where $D$ is the largest integer such that $|\operatorname{Children}(F_C(X, D, 0))| > 1$
+(i.e., the highest node that has multiple children),
 or 0 if no such integer exists.
 
 $F_C$ is defined recursively as follows:
@@ -202,6 +209,8 @@ $F_C$ is defined recursively as follows:
     otherwise
   - $|\operatorname{SPLIT}_C(X)|-1$
 
+  (I.e., its children are the chunks from 0 up to and including the first one with a “level” higher than 0.)
+
 - $F_C(X, 0, n+1)$ is:
 
   - **undefined** when $\sigma \ge |\operatorname{SPLIT}_C(X)|-1$; otherwise
@@ -209,21 +218,27 @@ $F_C$ is defined recursively as follows:
 
   where:
 
-  - $\sigma = \sum_{i=0}^{n}|Children(F_C(X, 0, i))|$ and
+  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, 0, i))|$ and
   - $b$ is:
       - the smallest integer such that
         $L(K_{C,b}(X)) > 0$, if one exists;
         otherwise
       - $|\operatorname{SPLIT}_C(X)|-1$.
 
+  (I.e., its children are the next chunks after the ones in $F_C(X, 0, 0)$ through $F_C(X, 0, n)$,
+  up until the next one whose level is higher than 0.)
+
 - $F_C(X, D+1, 0) = (D+1, \langle F_C(X, D, 0), \dots, F_C(X, D, b) \rangle)$
   where $b$ is:
 
   - the smallest integer such that
-    $L(\operatorname{Rightmost}(F_C(X, D, b))) > D$, if one exists;
+    $L(\operatorname{Rightmost}(F_C(X, D, b))) > D+1$, if one exists;
     otherwise
   - the integer such that
     $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+
+  (I.e., its children are the nodes from $F_C(X, D, 0)$ up to and including the first one
+  whose “rightmost leaf chunk” has a level higher than $D+1$.)
 
 - $F_C(X, D+1, n+1)$ is:
 
@@ -232,12 +247,15 @@ $F_C$ is defined recursively as follows:
 
   where:
 
-  - $\sigma = \sum_{i=0}^{n}|Children(F_C(X, D+1, i))|$ and
+  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, D+1, i))|$ and
   - $b$ is the smallest integer such that $b \ge \sigma$ and either:
-      - $L(\operatorname{Rightmost}(F_C(X, D, b))) > D$, if one exists;
+      - $L(\operatorname{Rightmost}(F_C(X, D, b))) > D+1$, if one exists;
         otherwise
       - the integer such that
         $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+
+  (I.e., its children are the next nodes at level D after the ones in $F_C(X, D+1, 0)$ through $F_C(X, D+1, n)$,
+  up until the next one whose rightmost leaf chunk has a level higher than $D+1$.)
 
 ### Procedural description
 
