@@ -142,24 +142,13 @@ $H(\langle X_{\max(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
 
 (i.e., the hash of the last $W$ bytes of $X$).
 
-The “level” $L(X)$ of a sequence $X$ is $Q - T$,
+The “level” $L(X)$ of a sequence $X$ is $\max(0, Q - T)$,
 where $Q$ is the largest integer such that
 
 - $Q \le 32$ and
 - $V(P(X)) \mod 2^Q = 0$
 
 (i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
-
-(Note:
-When $|R(X)| > 0$,
-$L(X)$ is non-negative,
-because $P(X)$ is defined in terms of a hash with $T$ trailing zeroes
-(except when the split is triggered by hitting $S_\text{max}$).
-But when $|R(X)| = 0$
-(or in the $S_\text{max}$ case),
-that hash may have fewer than $T$ trailing zeroes,
-and so $L(X)$ may be negative.
-This makes no difference to the algorithm below, however.)
 
 A “node” in a hashsplit tree
 is a pair $(h, S)$
@@ -182,7 +171,6 @@ defined recursively as follows:
 - If $h = 0$,
   $\operatorname{Rightmost}(N) = K_{C,b}$
 - Otherwise, $\operatorname{Rightmost}(N) = \operatorname{Rightmost}(S_b)$
-
 
 ## Algorithm
 
