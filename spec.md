@@ -180,70 +180,48 @@ and a procedural description for practical construction.
 
 ### Algebraic description
 
-Let function $F_C(X, h, i)$ on a sequence $X$, a height $h$, and an index $i$ produce the $i^\text{th}$ node at level $h$.
+Let $\mathbb{K}_C$ be a sequence of $n$ chunks $\langle K_{C,0}, \dots, K_{C,n-1} \rangle$.
 
-Then the root of the tree is $F_C(X, h, 0)$
-where $h$ is the largest integer such that $|\operatorname{Children}(F_C(X, h, 0))| > 1$
-(i.e., the highest node that has multiple children),
-or 0 if no such integer exists.
+Let the “prefix” $\mathbb{P}_{C,0}(\mathbb{K}_C)$
+of a sequence of chunks be defined as:
 
-$F_C$ is defined recursively as follows:
+- $\langle \rangle$ if $|\mathbb{K}_C| = 0$; otherwise
+- $\langle K_{C,0}, \dots, K_{C,b} \rangle$
+  where $b$ is the smallest integer such that $L(K_{C,b}) > 0$,
+  or $n-1$ if no such integer exists.
 
-- $F_C(X, 0, 0) = (0, \langle K_{C,0}(X), \dots, K_{C,b}(X) \rangle)$
-  where $b$ is:
+Let the “prefix” $\mathbb{P}_{C,h+1}(\mathbb{N}_{C,h})$
+of a sequence of $m$ nodes $\langle N_{C,h,0}, \dots, N_{C,h,m-1} \rangle$
+at height $h$ be defined as:
 
-  - the smallest integer such that
-    $L(K_{C,b}(X)) > 0$, if one exists;
-    otherwise
-  - $|\operatorname{SPLIT}_C(X)|-1$
+- $\langle \rangle$ if $|\mathbb{N}_{C,h}| = 0$; otherwise
+- $\langle N_{C,h,0}, \dots, N_{C,h,b} \rangle$
+  where $b$ is the smallest integer such that $L(Rightmost(N_{C,h,b})) > h+1$,
+  or $m-1$ if no such integer exists.
 
-  (I.e., its children are the chunks from 0 up to and including the first one with a “level” higher than 0.)
+Let the “remainder” $\mathbb{R}_{C,0}(\mathbb{K}_C)$
+of a sequence of $n$ chunks be defined as:
 
-- $F_C(X, 0, n+1)$ is:
+$\langle K_{C,|\mathbb{P}_{C,0}(\mathbb{K}_C)|}, \dots, K_{C,n-1} \rangle$
 
-  - **undefined** when $\sigma \ge |\operatorname{SPLIT}_C(X)|-1$; otherwise
-  - $(0, \langle K_{C,\sigma}, \dots, K_{C,b}(X) \rangle)$
+(i.e., the chunks remaining after removing the “prefix.”)
 
-  where:
+Let the “remainder” $\mathbb{R}_{C,h+1}(\mathbb{N}_{C,h})$
+of a sequence of $m$ nodes at height $h$ be defined as:
 
-  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, 0, i))|$ and
-  - $b$ is:
-      - the smallest integer such that
-        $L(K_{C,b}(X)) > 0$, if one exists;
-        otherwise
-      - $|\operatorname{SPLIT}_C(X)|-1$.
+$\langle N_{C,h,|\mathbb{P}_{C,h+1}(\mathbb{N}_{C,h})|}, \dots, N_{C,h,m-1} \rangle$
 
-  (I.e., its children are the next chunks after the ones in $F_C(X, 0, 0)$ through $F_C(X, 0, n)$,
-  up until the next one whose level is higher than 0.)
+(i.e., the nodes remaining after removing the “prefix.”)
 
-- $F_C(X, h+1, 0) = (h+1, \langle F_C(X, h, 0), \dots, F_C(X, h, b) \rangle)$
-  where $b$ is:
+Then:
 
-  - the smallest integer such that
-    $L(\operatorname{Rightmost}(F_C(X, h, b))) > h+1$, if one exists;
-    otherwise
-  - the integer such that
-    $\operatorname{Rightmost}(F_C(X, h, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+- $N_{C,0,0} = (0, \mathbb{P}_{C,0}(\operatorname{SPLIT}_C(X)))$
+- $\mathbb{N}_{C,0} = \langle N_{C,0,0} \rangle \mathbin{\|} \mathbb{R}_{C,0}(\operatorname{SPLIT}_C(X))$
+- $N_{C,h+1,0} = (h+1, \mathbb{P}_{C,h+1}(\mathbb{N}_{C,h}))$
+- $\mathbb{N}_{C,h+1} = \langle N_{C,h+1,0} \rangle \mathbin{\|} \mathbb{R}_{C,h+1}(\mathbb{N}_{C,h})$
 
-  (I.e., its children are the nodes from $F_C(X, h, 0)$ up to and including the first one
-  whose “rightmost leaf chunk” has a level higher than $h+1$.)
-
-- $F_C(X, h+1, n+1)$ is:
-
-  - **undefined** when $F_C(X, h, \sigma)$ is undefined; otherwise
-  - $(h+1, \langle F_C(X, h, \sigma), \dots, F_C(X, h, b) \rangle)$
-
-  where:
-
-  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, h+1, i))|$ and
-  - $b$ is the smallest integer such that $b \ge \sigma$ and either:
-      - $L(\operatorname{Rightmost}(F_C(X, h, b))) > h+1$, if one exists;
-        otherwise
-      - the integer such that
-        $\operatorname{Rightmost}(F_C(X, h, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
-
-  (I.e., its children are the next nodes at level h after the ones in $F_C(X, h+1, 0)$ through $F_C(X, h+1, n)$,
-  up until the next one whose rightmost leaf chunk has a level higher than $h+1$.)
+and the root of the tree is $N_{C,h,0}$
+for the lowest value of $h$ where $|\mathbb{N}_{C,h}| = 1$.
 
 ### Procedural description
 
