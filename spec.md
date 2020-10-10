@@ -162,24 +162,24 @@ and so $L(X)$ may be negative.
 This makes no difference to the algorithm below, however.)
 
 A “node” in a hashsplit tree
-is a pair $(D, S)$
-where $D$ is the node’s “depth”
+is a pair $(h, S)$
+where $h$ is the node’s “height”
 and $S$ is a sequence of children.
-The children of a node at depth 0 are chunks
+The children of a node at height 0 are chunks
 (i.e., subsequences of the input).
-The children of a node at depth $D > 0$ are nodes at depth $D - 1$.
+The children of a node at height $h > 0$ are nodes at height $h - 1$.
 
 The function $\operatorname{Children}(N)$
-on a node $N = (D, S)$
+on a node $N = (h, S)$
 produces $S$
 (the sequence of children).
 
 The function $\operatorname{Rightmost}(N)$
-on a node $N = (D, \langle S_0, \dots, S_b \rangle)$
+on a node $N = (h, \langle S_0, \dots, S_b \rangle)$
 produces the “rightmost leaf chunk”
 defined recursively as follows:
 
-- If $D = 0$,
+- If $h = 0$,
   $\operatorname{Rightmost}(N) = K_{C,b}$
 - Otherwise, $\operatorname{Rightmost}(N) = \operatorname{Rightmost}(S_b)$
 
@@ -192,10 +192,10 @@ and a procedural description for practical construction.
 
 ### Algebraic description
 
-Let function $F_C(X, D, i)$ on a sequence $X$, a depth $D$, and an index $i$ produce the $i^\text{th}$ node at level $D$.
+Let function $F_C(X, h, i)$ on a sequence $X$, a height $h$, and an index $i$ produce the $i^\text{th}$ node at level $h$.
 
-Then the root of the tree is $F_C(X, D, 0)$
-where $D$ is the largest integer such that $|\operatorname{Children}(F_C(X, D, 0))| > 1$
+Then the root of the tree is $F_C(X, h, 0)$
+where $h$ is the largest integer such that $|\operatorname{Children}(F_C(X, h, 0))| > 1$
 (i.e., the highest node that has multiple children),
 or 0 if no such integer exists.
 
@@ -228,48 +228,48 @@ $F_C$ is defined recursively as follows:
   (I.e., its children are the next chunks after the ones in $F_C(X, 0, 0)$ through $F_C(X, 0, n)$,
   up until the next one whose level is higher than 0.)
 
-- $F_C(X, D+1, 0) = (D+1, \langle F_C(X, D, 0), \dots, F_C(X, D, b) \rangle)$
+- $F_C(X, h+1, 0) = (h+1, \langle F_C(X, h, 0), \dots, F_C(X, h, b) \rangle)$
   where $b$ is:
 
   - the smallest integer such that
-    $L(\operatorname{Rightmost}(F_C(X, D, b))) > D+1$, if one exists;
+    $L(\operatorname{Rightmost}(F_C(X, h, b))) > h+1$, if one exists;
     otherwise
   - the integer such that
-    $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+    $\operatorname{Rightmost}(F_C(X, h, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
 
-  (I.e., its children are the nodes from $F_C(X, D, 0)$ up to and including the first one
-  whose “rightmost leaf chunk” has a level higher than $D+1$.)
+  (I.e., its children are the nodes from $F_C(X, h, 0)$ up to and including the first one
+  whose “rightmost leaf chunk” has a level higher than $h+1$.)
 
-- $F_C(X, D+1, n+1)$ is:
+- $F_C(X, h+1, n+1)$ is:
 
-  - **undefined** when $F_C(X, D, \sigma)$ is undefined; otherwise
-  - $(D+1, \langle F_C(X, D, \sigma), \dots, F_C(X, D, b) \rangle)$
+  - **undefined** when $F_C(X, h, \sigma)$ is undefined; otherwise
+  - $(h+1, \langle F_C(X, h, \sigma), \dots, F_C(X, h, b) \rangle)$
 
   where:
 
-  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, D+1, i))|$ and
+  - $\sigma = \sum_{i=0}^{n}|\operatorname{Children}(F_C(X, h+1, i))|$ and
   - $b$ is the smallest integer such that $b \ge \sigma$ and either:
-      - $L(\operatorname{Rightmost}(F_C(X, D, b))) > D+1$, if one exists;
+      - $L(\operatorname{Rightmost}(F_C(X, h, b))) > h+1$, if one exists;
         otherwise
       - the integer such that
-        $\operatorname{Rightmost}(F_C(X, D, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
+        $\operatorname{Rightmost}(F_C(X, h, b)) = K_{C,|\operatorname{SPLIT}_C(X)|-1}$
 
-  (I.e., its children are the next nodes at level D after the ones in $F_C(X, D+1, 0)$ through $F_C(X, D+1, n)$,
-  up until the next one whose rightmost leaf chunk has a level higher than $D+1$.)
+  (I.e., its children are the next nodes at level h after the ones in $F_C(X, h+1, 0)$ through $F_C(X, h+1, n)$,
+  up until the next one whose rightmost leaf chunk has a level higher than $h+1$.)
 
 ### Procedural description
 
 To compute a hashsplit tree from sequence $X$,
 compute its “root node” as follows.
 
-1. Let $N_0$ be $(0, \langle\rangle)$ (i.e., a node at depth 0 with no children).
+1. Let $N_0$ be $(0, \langle\rangle)$ (i.e., a node at height 0 with no children).
 2. If $|X| = 0$, then:
-    a. Let $d$ be the largest depth such that $N_d$ exists.
+    a. Let $h$ be the largest height such that $N_h$ exists.
     b. If $|\operatorname{Children}(N_0)| > 0$, then:
-        i. For each integer $i$ in $[0 .. d]$, “close” $N_i$ (see below).
-        ii. Set $d \leftarrow d+1$.
-    c. [pruning] While $d > 0$ and $|\operatorname{Children}(N_d)| = 1$, set $d \leftarrow d-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
-    d. **Terminate** with $N_d$ as the root node.
+        i. For each integer $i$ in $[0 .. h]$, “close” $N_i$ (see below).
+        ii. Set $h \leftarrow h+1$.
+    c. [pruning] While $h > 0$ and $|\operatorname{Children}(N_h)| = 1$, set $h \leftarrow h-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
+    d. **Terminate** with $N_h$ as the root node.
 3. Otherwise, set $N_0 \leftarrow (0, \operatorname{Children}(N_0) \mathbin{\|} \langle P(X) \rangle)$ (i.e., add $P(X)$ to the list of children in $N_0$).
 4. For each integer $i$ in $[0 .. L(X))$, “close” the node $N_i$ (see below).
 5. Set $X \leftarrow R(X)$.
@@ -277,9 +277,9 @@ compute its “root node” as follows.
 
 To “close” a node $N_i$:
 
-1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $(i+1, \langle\rangle)$ (i.e., a node at depth ${i + 1}$ with no children).
+1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $(i+1, \langle\rangle)$ (i.e., a node at height ${i + 1}$ with no children).
 2. Set $N_{i+1} \leftarrow (i+1, \operatorname{Children}(N_{i+1}) \mathbin{\|} \langle N_i \rangle)$ (i.e., add $N_i$ as a child to $N_{i+1}$).
-3. Let $N_i$ be $(i, \langle\rangle)$ (i.e., new node at depth $i$ with no children).
+3. Let $N_i$ be $(i, \langle\rangle)$ (i.e., new node at height $i$ with no children).
 
 # Rolling Hash Functions
 
