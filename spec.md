@@ -294,7 +294,7 @@ Given $\operatorname{CP32}(X)$, $X_0$ and $y$, we can compute
 $\operatorname{CP32}(Y)$ as:
 
 $\operatorname{CP32}(Y) = \operatorname{ROT}_L(\operatorname{CP32}(X),
-1) \oplus \operatorname{ROT}_L(g(X_0), |X|) \oplus g(y)$.
+1) \oplus \operatorname{ROT}_L(g(X_0), |X| \mod 32) \oplus g(y)$.
 
 Note that the splitting algorithm only computes hashes on sequences of
 size $W = 64$, and since 64 is a multiple of 32 this means that for the
