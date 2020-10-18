@@ -65,7 +65,37 @@ We also use the following operators and functions:
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\min(x, y)$ denotes the minimum of $x$ and $y$.
+- $\min(x, y)$ denotes the minimum of $x$ and $y$ and $\max(x, y)$ denotes the maximum
+- $\operatorname{Type}(x)$ denotes the type of $x$.
+
+Finally, we define the “prefix” $\mathbb{P}_q(X)$
+of a non-empty sequence $X$
+with respect to a given predicate $q$
+to be the initial subsequence $X^\prime$ of $X$
+up to and including the first member that makes $q(X^\prime)$ true.
+And we define the “remainder” $\mathbb{R}_q(X)$
+to be everything left after removing the prefix.
+
+Formally,
+given a sequence $X = \langle X_0, \dots, X_{|X|-1} \rangle$
+and a predicate $q \in \operatorname{Type}(X) \rightarrow \{\text{true},\text{false}\}$,
+
+$\mathbb{P}_q(X) = \langle X_0, \dots, X_e \rangle$
+
+for the smallest integer $e$ such that:
+
+- $0 \le e < |X|$ and
+- $q(\langle X_0, \dots, X_e \rangle) = \text{true}$
+
+or $|X|-1$ if no such integer exists.
+(I.e., if nothing satisfies $q$, the prefix is the whole sequence.)
+And:
+
+$\mathbb{R}_q(X) = \langle X_b, \dots, X_{|X|-1} \rangle$
+
+where $b = |\mathbb{P}_q(\langle X_0, \dots, X_{|X|-1} \rangle)|$.
+
+Note that when $\mathbb{P}_q(X) = X$, $\mathbb{R}_q(X) = \langle \rangle$.
 
 # Splitting
 
@@ -74,7 +104,7 @@ functions:
 
 $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 
-...which is parameterized by a configuration $C$, consisting of:
+...which is parameterized by a _configuration_ $C$, consisting of:
 
 - $S_{\text{min}} \in U_{32}$, the minimum split size
 - $S_{\text{max}} \in U_{32}$, the maximum split size
@@ -83,28 +113,55 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 
 The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$.
 
+<!---
+NOTE
+
+It might help the clarity of what follows
+if we make parameterization by C implicit
+rather than repeating C in subscripts everywhere.
+-->
+
 ## Definitions
 
 We define the constant $W$, which we call the "window size," to be 64.
 
-The "split index" $I(X)$ of a sequence $X$ is either the smallest
-non-negative integer $i$ satisfying:
+<!---
+NOTE
 
-- $i \le |X|$ and
-- $S_{\text{max}} \ge i \ge S_{\text{min}}$ and
-- $H(\langle X_{i-W}, \dots, X_{i-1} \rangle) \mod 2^T = 0$
+Fixing W at 64
+arbitrarily rules out using this section
+to describe and reason about hashsplit algorithms
+that it otherwise could.
 
-...or $\min(|X|, S_{\text{max}})$, if no such $i$ exists. For the
-purposes of this definition we set $X_i = 0$ for $i < 0$.
+I think fixing it at 64 is more properly a part of the recommendation section.
+-->
 
-The “prefix” $P(X)$ of a non-empty sequence $X$ is $\langle X_0, \dots, X_{I(X)-1} \rangle$.
+We define the predicate $q_C(X)$
+on a non-empty byte sequence $X$
+with respect to a configuration $C$
+to be:
 
-The “remainder” $R(X)$ of a non-empty sequence $X$ is $\langle X_{I(X)}, \dots, X_{|X|-1} \rangle$.
+- $\text{true}$ if $|X| = S_{\text{max}}$; otherwise
+- $\text{true}$ if $|X| \ge S_{\text{min}}$ and $H(\langle X_{\max(0,|X|-W)}, \dots, X_{|X|-1} \rangle) \mod 2^T = 0$
+  (i.e., the last $W$ bytes of $X$ hash to a value with at least $T$ trailing zeroes);
+  otherwise
+- $\text{false}$.
+
+<!---
+NOTE
+
+This previously used H(<X_(|X|-W) ... X_(|X|-1)>) and defined X_i = 0 for i<0.
+However, this unnecessarily constrains the choice of hash function.
+If the hash function wants to treat input shorter than W as being prefixed by zeroes,
+it can specify that;
+but if it wants to handle input shorter than W differently,
+it should be allowed to do that too.
+-->
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
 - If $|X| = 0$, $\operatorname{SPLIT}_C(X) = \langle \rangle$
-- Otherwise, $\operatorname{SPLIT}_C(X) = \langle P(X) \rangle \mathbin{\|} \operatorname{SPLIT}_C(R(X))$
+- Otherwise, $\operatorname{SPLIT}_C(X) = \langle \mathbb{P}_{q_C}(X) \rangle \mathbin{\|} \operatorname{SPLIT}_C(\mathbb{R}_{q_C}(X))$
 
 # Tree Construction
 
@@ -133,44 +190,69 @@ will differ only in the subtrees in the vicinity of the differences.
 
 ## Definitions
 
-A “chunk” $K_{C,i}(X)$ is a member of the sequence produced by $\operatorname{SPLIT}_C(X)$.
-The index $i$ lies in the range $[0 .. |\operatorname{SPLIT}_C(X)|)$.
+A “chunk” is a member of the sequence produced by $\operatorname{SPLIT}_C$.
 
-The “hashval” $V(X)$ of a sequence $X$ is:
+The “hashval” $V_C(X)$ of a byte sequence $X$ is:
 
 $H(\langle X_{\max(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
 
 (i.e., the hash of the last $W$ bytes of $X$).
 
-The “level” $L(X)$ of a sequence $X$ is $\max(0, Q - T)$,
-where $Q$ is the largest integer such that
+A “node” $N_{h,i}$ in a hashsplit tree
+at non-negative “height” $h$
+is a sequence of children.
+The children of a node at height 0 are chunks.
+The children of a node at height $h+1$ are nodes at height $h$.
 
-- $Q \le 32$ and
-- $V(P(X)) \mod 2^Q = 0$
+A “tier” of a hashsplit tree is a sequence of nodes
+$N_h = \langle N_{h,0}, \dots, N_{h,k} \rangle$
+at a given height $h$.
 
-(i.e., the level is the number of trailing zeroes in the rolling checksum in excess of the threshold needed to produce the prefix chunk $P(X)$).
-
-A “node” in a hashsplit tree
-is a pair $(h, S)$
-where $h$ is the node’s “height”
-and $S$ is a sequence of children.
-The children of a node at height 0 are chunks
-(i.e., subsequences of the input).
-The children of a node at height $h > 0$ are nodes at height $h - 1$.
-
-The function $\operatorname{Children}(N)$
-on a node $N = (h, S)$
-produces $S$
-(the sequence of children).
-
-The function $\operatorname{Rightmost}(N)$
-on a node $N = (h, \langle S_0, \dots, S_b \rangle)$
+The function $\operatorname{Rightmost}(N_{h,i})$
+on a node $N_{h,i} = \langle S_0, \dots, S_e \rangle$
 produces the “rightmost leaf chunk”
 defined recursively as follows:
 
-- If $h = 0$,
-  $\operatorname{Rightmost}(N) = K_{C,b}$
-- Otherwise, $\operatorname{Rightmost}(N) = \operatorname{Rightmost}(S_b)$
+- If $h = 0$, $\operatorname{Rightmost}(N_{h,i}) = S_e$
+- If $h > 0$, $\operatorname{Rightmost}(N_{h,i}) = \operatorname{Rightmost}(S_e)$
+
+The “level” $L_C(X)$ of a given chunk $X$
+is $\max(0, Q - T)$,
+where $Q$ is the largest integer such that
+
+- $Q \le 32$ and
+- $V_C(\mathbb{P}_{q_C}(X)) \mod 2^Q = 0$
+
+(i.e., the level is the number of trailing zeroes in the hashval
+in excess of the threshold needed
+to produce the prefix chunk $\mathbb{P}_{q_C}(X)$).
+
+The level $L_C(N)$ of a given _node_ $N$
+is the level of its rightmost leaf chunk:
+$L_C(N) = L_C(\operatorname{Rightmost}(N))$
+
+The predicate $z_{C,h}(K)$
+on a sequence $K = \langle K_0, \dots, K_e \rangle$
+of chunks or of nodes
+with respect to a height $h$
+is defined as:
+
+- $\text{true}$ if $L(K_e) > h$; otherwise
+- $\text{false}$.
+
+<!---
+NOTE
+
+Still needed:
+a way to specify
+the minimum and maximum branching factor
+(akin to S_min and S_max for SPLIT_C).
+-->
+
+For conciseness, define
+
+- $P_C(X) = \mathbb{P}_{z_{C,0}}(\operatorname{SPLIT}_C(X))$ and
+- $R_C(X) = \mathbb{R}_{z_{C,0}}(\operatorname{SPLIT}_C(X))$
 
 ## Algorithm
 
@@ -180,72 +262,56 @@ and a procedural description for practical construction.
 
 ### Algebraic description
 
-Let $\mathbb{K}_C$ be a sequence of $n$ chunks $\langle K_{C,0}, \dots, K_{C,n-1} \rangle$.
+The tier $N_0$
+of hashsplit tree nodes
+for a given byte sequence $X$
+is equal to
 
-Let the “prefix” $\mathbb{P}_{C,0}(\mathbb{K}_C)$
-of a sequence of chunks be defined as:
+$\langle P_C(X) \rangle \mathbb{\|} R_C(X)$
 
-- $\langle \rangle$ if $|\mathbb{K}_C| = 0$; otherwise
-- $\langle K_{C,0}, \dots, K_{C,b} \rangle$
-  where $b$ is the smallest integer such that $L(K_{C,b}) > 0$,
-  or $n-1$ if no such integer exists.
+The tier $N_{h+1}$
+of hashsplit tree nodes
+for a given byte sequence $X$
+is equal to
 
-Let the “prefix” $\mathbb{P}_{C,h+1}(\mathbb{N}_{C,h})$
-of a sequence of $m$ nodes $\langle N_{C,h,0}, \dots, N_{C,h,m-1} \rangle$
-at height $h$ be defined as:
+$\langle \mathbb{P}_{z_{C,h+1}}(N_h) \rangle \mathbb{\|} \mathbb{R}_{z_{C,h+1}}(N_h)$
 
-- $\langle \rangle$ if $|\mathbb{N}_{C,h}| = 0$; otherwise
-- $\langle N_{C,h,0}, \dots, N_{C,h,b} \rangle$
-  where $b$ is the smallest integer such that $L(Rightmost(N_{C,h,b})) > h+1$,
-  or $m-1$ if no such integer exists.
+(I.e., each node in the tree has as its children
+a sequence of chunks or lower-tier nodes,
+as appropriate,
+up to and including the first one
+whose “level” is greater than the node’s height.)
 
-Let the “remainder” $\mathbb{R}_{C,0}(\mathbb{K}_C)$
-of a sequence of $n$ chunks be defined as:
-
-$\langle K_{C,|\mathbb{P}_{C,0}(\mathbb{K}_C)|}, \dots, K_{C,n-1} \rangle$
-
-(i.e., the chunks remaining after removing the “prefix.”)
-
-Let the “remainder” $\mathbb{R}_{C,h+1}(\mathbb{N}_{C,h})$
-of a sequence of $m$ nodes at height $h$ be defined as:
-
-$\langle N_{C,h,|\mathbb{P}_{C,h+1}(\mathbb{N}_{C,h})|}, \dots, N_{C,h,m-1} \rangle$
-
-(i.e., the nodes remaining after removing the “prefix.”)
-
-Then:
-
-- $N_{C,0,0} = (0, \mathbb{P}_{C,0}(\operatorname{SPLIT}_C(X)))$
-- $\mathbb{N}_{C,0} = \langle N_{C,0,0} \rangle \mathbin{\|} \mathbb{R}_{C,0}(\operatorname{SPLIT}_C(X))$
-- $N_{C,h+1,0} = (h+1, \mathbb{P}_{C,h+1}(\mathbb{N}_{C,h}))$
-- $\mathbb{N}_{C,h+1} = \langle N_{C,h+1,0} \rangle \mathbin{\|} \mathbb{R}_{C,h+1}(\mathbb{N}_{C,h})$
-
-and the root of the tree is $N_{C,h,0}$
-for the lowest value of $h$ where $|\mathbb{N}_{C,h}| = 1$.
+The root of the hashsplit tree is $N_{h^\prime,0}$
+for the smallest value of $h^\prime$
+such that $|N_{h^\prime}| = 1$
 
 ### Procedural description
 
-To compute a hashsplit tree from sequence $X$,
+For this description we use $N_h$ to denote a single node at height $h$.
+The algorithm must keep track of the “rightmost” such node for each tier in the tree.
+
+To compute a hashsplit tree from a byte sequence $X$,
 compute its “root node” as follows.
 
-1. Let $N_0$ be $(0, \langle\rangle)$ (i.e., a node at height 0 with no children).
+1. Let $N_0$ be $\langle\rangle$ (i.e., a node at height 0 with no children).
 2. If $|X| = 0$, then:
     a. Let $h$ be the largest height such that $N_h$ exists.
-    b. If $|\operatorname{Children}(N_0)| > 0$, then:
+    b. If $|N_0| > 0$, then:
         i. For each integer $i$ in $[0 .. h]$, “close” $N_i$ (see below).
         ii. Set $h \leftarrow h+1$.
-    c. [pruning] While $h > 0$ and $|\operatorname{Children}(N_h)| = 1$, set $h \leftarrow h-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
+    c. [pruning] While $h > 0$ and $|N_h| = 1$, set $h \leftarrow h-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
     d. **Terminate** with $N_h$ as the root node.
-3. Otherwise, set $N_0 \leftarrow (0, \operatorname{Children}(N_0) \mathbin{\|} \langle P(X) \rangle)$ (i.e., add $P(X)$ to the list of children in $N_0$).
-4. For each integer $i$ in $[0 .. L(X))$, “close” the node $N_i$ (see below).
-5. Set $X \leftarrow R(X)$.
+3. Otherwise, set $N_0 \leftarrow N_0 \mathbin{\|} \langle P_C(X) \rangle$ (i.e., add $P_C(X)$ to the list of children in $N_0$).
+4. For each integer $i$ in $[0 .. L_C(X))$, “close” the node $N_i$ (see below).
+5. Set $X \leftarrow R_C(X)$.
 6. Go to step 2.
 
 To “close” a node $N_i$:
 
-1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $(i+1, \langle\rangle)$ (i.e., a node at height ${i + 1}$ with no children).
-2. Set $N_{i+1} \leftarrow (i+1, \operatorname{Children}(N_{i+1}) \mathbin{\|} \langle N_i \rangle)$ (i.e., add $N_i$ as a child to $N_{i+1}$).
-3. Let $N_i$ be $(i, \langle\rangle)$ (i.e., new node at height $i$ with no children).
+1. If no $N_{i+1}$ exists yet, let $N_{i+1}$ be $\langle\rangle$ (i.e., a node at height ${i + 1}$ with no children).
+2. Set $N_{i+1} \leftarrow N_{i+1} \mathbin{\|} \langle N_i \rangle$ (i.e., add $N_i$ as a child to $N_{i+1}$).
+3. Let $N_i$ be $\langle\rangle$ (i.e., new node at height $i$ with no children).
 
 # Rolling Hash Functions
 
