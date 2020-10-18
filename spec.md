@@ -86,7 +86,7 @@ We define a similar notation for exclusive or:
 
 $\bigoplus_{i = 0}^{n} i$
 
-denotes the bitwise exclusive or of theintegers in $[0, n]$.
+denotes the bitwise exclusive or of the integers in $[0, n]$.
 
 # Splitting
 
