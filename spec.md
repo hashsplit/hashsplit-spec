@@ -113,28 +113,9 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 
 The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$.
 
-<!---
-NOTE
-
-It might help the clarity of what follows
-if we make parameterization by C implicit
-rather than repeating C in subscripts everywhere.
--->
-
 ## Definitions
 
 We define the constant $W$, which we call the "window size," to be 64.
-
-<!---
-NOTE
-
-Fixing W at 64
-arbitrarily rules out using this section
-to describe and reason about hashsplit algorithms
-that it otherwise could.
-
-I think fixing it at 64 is more properly a part of the recommendation section.
--->
 
 We define the predicate $q_C(X)$
 on a non-empty byte sequence $X$
@@ -146,17 +127,6 @@ to be:
   (i.e., the last $W$ bytes of $X$ hash to a value with at least $T$ trailing zeroes);
   otherwise
 - $\text{false}$.
-
-<!---
-NOTE
-
-This previously used H(<X_(|X|-W) ... X_(|X|-1)>) and defined X_i = 0 for i<0.
-However, this unnecessarily constrains the choice of hash function.
-If the hash function wants to treat input shorter than W as being prefixed by zeroes,
-it can specify that;
-but if it wants to handle input shorter than W differently,
-it should be allowed to do that too.
--->
 
 We define $\operatorname{SPLIT}_C(X)$ recursively, as follows:
 
@@ -239,15 +209,6 @@ is defined as:
 
 - $\text{true}$ if $L_C(K_e) > h$; otherwise
 - $\text{false}$.
-
-<!---
-NOTE
-
-Still needed:
-a way to specify
-the minimum and maximum branching factor
-(akin to S_min and S_max for SPLIT_C).
--->
 
 For conciseness, define
 
