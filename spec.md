@@ -237,7 +237,7 @@ of chunks or of nodes
 with respect to a height $h$
 is defined as:
 
-- $\text{true}$ if $L(K_e) > h$; otherwise
+- $\text{true}$ if $L_C(K_e) > h$; otherwise
 - $\text{false}$.
 
 <!---
