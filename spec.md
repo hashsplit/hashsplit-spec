@@ -35,17 +35,21 @@ This section discusses notation used in this specification.
 
 We define the following sets:
 
-- $U_{32}$, The set of integers in the range $[0, 2^{32})$
+- $U_{32}$, The set of integers in the range $[0, 2^{32})$.
 - $U_8$, The set of integers in the range $[0, 2^8)$, aka bytes.
 - $V_8$, The set of *sequences* of bytes, i.e. sequences of
   $U_8$.
 - $V_v$, The set of *sequences* of *sequences* of bytes, i.e.
   sequences of elements of $V_8$.
+- $V_{32}$, The set of sequences of elements of $U_{32}$.
 
 All arithmetic operations in this document are implicitly performed
 modulo $2^{32}$. We use standard mathematical notation for addition,
 subtraction, multiplication, and exponentiation. Division always
 denotes integer division, i.e. any remainder is dropped.
+
+Numerals staring with the prefix `0x` are hexadecimal, e.g. `0xfe`
+for the (decimal) number 254
 
 We use the notation $\langle X_0, X_1, \dots, X_k \rangle$ to denote
 an ordered sequence of values.
@@ -56,17 +60,37 @@ elements it contains.
 We also use the following operators and functions:
 
 - $x \wedge y$ denotes the bitwise AND of $x$ and $y$
-- $x \vee y$ denotes the bitwise OR of $x$ and $y$
+- $x \vee y$ denotes the bitwise *inclusive* OR of $x$ and $y$
+- $x \oplus y$ denotes the bitwise *exclusive* OR of $x$ and $y$
 - $x \ll n$ denotes shifting $x$ to the left $n$ bits, i.e.
   $x \ll n = x2^{n}$
 - $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
   right by $n$ bits, i.e. $x \gg n = x / 2^n$
-- $X \mathbin{\|} Y$ denotes the concatenation of two sequences $X$ and $Y$,
+- $X \mathbin{\|} Y$ denotes the concatenation of two sequences $X$ and
+  $Y$,
   i.e. if $X = \langle X_0, \dots, X_N \rangle$ and $Y = \langle Y_0,
   \dots, Y_M \rangle$ then $X \mathbin{\|} Y = \langle X_0, \dots, X_N, Y_0, \dots, Y_M
   \rangle$
-- $\min(x, y)$ denotes the minimum of $x$ and $y$ and $\max(x, y)$ denotes the maximum
+- $\min(x, y)$ denotes the minimum of $x$ and $y$ and $\max(x, y)$
+  denotes the maximum
+- $\operatorname{ROT}_L(x, n)$ denotes the rotation of $x$ to the left
+  by $n$ bits, i.e. $\operatorname{ROT}_L(x, n) = (x \ll n) \vee (x \gg
+  (32 - n))$
 - $\operatorname{Type}(x)$ denotes the type of $x$.
+
+We use standard mathematical notation for summation. For example:
+
+$\sum_{i = 0}^{n} i$
+
+denotes the sum of integers in the range $[0, n]$.
+
+We define a similar notation for exclusive or:
+
+$\bigoplus_{i = 0}^{n} i$
+
+denotes the bitwise exclusive or of the integers in $[0, n]$, i.e.
+
+$\bigoplus_{i = 0}^{n} i = 0 \oplus 1 \oplus \dots \oplus n$
 
 Finally, we define the “prefix” $\mathbb{P}_q(X)$
 of a non-empty sequence $X$
@@ -276,6 +300,53 @@ To “close” a node $N_i$:
 
 # Rolling Hash Functions
 
+## CP32
+
+The `cp32` hash function is based on cyclic polynomials. The family of
+related functions is sometimes also called "buzhash." `cp32` is the
+recommended hash function for use with hashsplit; use it unless you have
+clear reasons for doing otherwise.
+
+### Definition
+
+We define the function $\operatorname{CP32} \in V_8 \rightarrow U_{32}$
+as:
+
+$\operatorname{CP32}(X) = \bigoplus_{i = 0}^{|X| - 1}
+\operatorname{ROT}_L(g(X_i), |X| - i + 1)$
+
+Where $g(n) = G_n$ and the sequence $G \in V_{32}$ is defined in the
+appendix.
+
+The sequence $G$ was chosen at random. Note that $|G| = 256$, so
+$g(n)$ is always defined.
+
+### Implementation
+
+## Rolling
+
+$\operatorname{CP32}$ can be computed in a rolling fashion; for
+sequences
+
+$X = \langle X_0, \dots, X_N \rangle$
+
+and
+
+$Y = \langle X_1, \dots, X_N, y \rangle$
+
+Given $\operatorname{CP32}(X)$, $X_0$ and $y$, we can compute
+$\operatorname{CP32}(Y)$ as:
+
+$\operatorname{CP32}(Y) = \operatorname{ROT}_L(\operatorname{CP32}(X),
+1) \oplus \operatorname{ROT}_L(g(X_0), |X| \mod 32) \oplus g(y)$.
+
+Note that the splitting algorithm only computes hashes on sequences of
+size $W = 64$, and since 64 is a multiple of 32 this means that for the
+purposes of splitting, the above can be simplified to:
+
+$\operatorname{CP32}(Y) = \operatorname{ROT}_L(\operatorname{CP32}(X),
+1) \oplus g(X_0) \oplus g(y)$.
+
 ## The RRS Rolling Checksums
 
 The `rrs` family of checksums is based on an algorithm first used
@@ -342,6 +413,58 @@ as it allows $s(k, l)$ to be computed using only shifts and bitwise
 operators:
 
 $s(k, l) = b(k, l) \vee (a(k, l) \ll 16)$
+
+# Appendix
+
+The definition of $G$ as used by $\operatorname{CP32}$ is:
+
+$\langle$
+```
+0x6b326ac4, 0x13f8e1bd, 0x1d61066f, 0x87733fc7, 0x37145391, 0x1c115e40,
+0xd2ea17a3, 0x8650e4b1, 0xe892bb09, 0x408a0c3a, 0x3c40b72c, 0x2a988fb0,
+0xf691d0f8, 0xb22072d9, 0x6fa8b705, 0x72bd6386, 0xdd905ac3, 0x7fcba0ba,
+0x4f84a51c, 0x1dd8477e, 0x6f972f2c, 0xaccd018e, 0xe2964f13, 0x7a7d2388,
+0xebf42ca7, 0xa8e2a0a2, 0x8eb726d3, 0xccd169b6, 0x5444f61e, 0xe178ad7a,
+0xd556a18d, 0xbac80ef4, 0x34cb8a87, 0x7740a1a9, 0x62640fe1, 0xb1e64472,
+0xdee2d6c8, 0x27849114, 0xb6333f4b, 0xbb0b5c1d, 0x57e53652, 0xfde51999,
+0xef773313, 0x1bbaf941, 0x2e9aa084, 0x37587ab8, 0xa61e7c54, 0xb779be61,
+0xd8795bfd, 0x1707c1f6, 0x50fe9c54, 0x32ff3685, 0x94f55c22, 0x2a32ce1a,
+0x0b9076ab, 0x14363079, 0xae994b2c, 0x4a8da881, 0x4770b9c4, 0xf4d143dd,
+0x70a90c0b, 0xa094582a, 0x4b254d10, 0x2454325e, 0x1725a589, 0x9a3380da,
+0x948eeade, 0x79f88224, 0x7b8dc378, 0xc2090db6, 0x41f7a7ac, 0xd4d9528c,
+0x7f0bace7, 0xd3157814, 0xd7757bc4, 0xb428db06, 0x2e2b1d02, 0x0499bcf5,
+0x310f963e, 0xe5f31a83, 0xe0cd600f, 0x8b48af14, 0x568eb23a, 0x01d1150b,
+0x33f54023, 0xa0e59fdf, 0x8d17c2dd, 0xfb7bd347, 0x4d8cd432, 0x664db8de,
+0xd48f2a6c, 0x16c3412d, 0x873a32fc, 0x10796a21, 0xed40f0f8, 0x5ca8e9b2,
+0x0f70d259, 0x0df532c2, 0x016d73aa, 0x45761aa5, 0x189b45a7, 0x4accd733,
+0x641f90e3, 0x592ed9ee, 0x4b1d72ad, 0x42ff2cd4, 0x0654b609, 0x799012c0,
+0x595f36a4, 0x082bdbd6, 0x0375ddd3, 0xc16c1fb5, 0x57492df8, 0xa2d56a98,
+0xdfb2aa28, 0x3728f35f, 0xdc49ea71, 0x9aee8377, 0xd62de2ab, 0x2c3aa155,
+0x407d9eed, 0xbc5b3832, 0x42961924, 0x1498172a, 0xc7126716, 0x95494b56,
+0xd40442fb, 0xb22a3ed1, 0x0ad3e0ae, 0x77a6136a, 0xfb1bc3f0, 0x1a715c38,
+0xccbbd21d, 0x061ff037, 0x85d700cb, 0x8a8fb396, 0x956bbe48, 0xf2556ed8,
+0x3319c88b, 0xe0d6d3e9, 0x4783b316, 0x03a73543, 0x253be5ed, 0x41322aea,
+0xdfc00c7a, 0x972b9413, 0xccca42f5, 0x0a1cdf35, 0xa2dc31b8, 0xf48397eb,
+0xbe3f2b3e, 0xd2950b9f, 0xccd269cf, 0x51a64ca9, 0xea46d96e, 0xcaec892e,
+0x3fae3a62, 0xf12e53db, 0x3753464c, 0x214fbd91, 0x609ce2f7, 0x6158b44c,
+0xa74b8027, 0x79f36912, 0x16cac162, 0x5e76df4f, 0xbc4184fb, 0x912cac7d,
+0xf97e5704, 0x664dd25f, 0x7d837805, 0x5386cfe0, 0x4e585d77, 0xa0fa527e,
+0xeb5c8401, 0xa186cc51, 0x05ef3f1f, 0xc1efc774, 0x38730c2c, 0xad9c5539,
+0x27cd4938, 0x7317b4f2, 0x852c186f, 0xa4c9b0f4, 0xf592f010, 0xf6fe86f3,
+0xb14ba86c, 0x07109a27, 0x0d00568d, 0xd92ee49f, 0xdc643eb3, 0x8d81c333,
+0xcd1d7bbd, 0x87ff9cda, 0x80fa4285, 0x25258d5b, 0xd9e4065a, 0x78955c18,
+0x84874c2a, 0xfdae136b, 0x48eeb3d3, 0xc2623958, 0x5a74f96d, 0x0bcb49f5,
+0x3041cefc, 0xa5b0a1a8, 0x2d29bae6, 0x916ace93, 0x0e70564d, 0xa24894ae,
+0x9897044d, 0xcba97c2a, 0x52a313b1, 0x318ec481, 0xc4729ec1, 0xd90ad78a,
+0x55eb9f90, 0x4f159fda, 0xa90fbd44, 0xd0ca6208, 0x5c597269, 0xe05a471e,
+0x26a5e224, 0x97144944, 0xece2c486, 0xf65c9a9e, 0x82a3fbbb, 0x925d1a62,
+0xd6c4c29b, 0x61b9292d, 0x161529c9, 0x37713240, 0x68ec933b, 0xed80a4e5,
+0x02b2db41, 0x47cfd676, 0xbfe26b41, 0x5e8468bb, 0x6e0d15a4, 0x40383ef4,
+0x81e622fb, 0x194b378c, 0x0c503af5, 0x8e0033a7, 0x003aaa5e, 0x9d7b6723,
+0x0702e877, 0x34b75166, 0xd1ba98d8, 0x9b9f1794, 0xe8961c84, 0x9d773b17,
+0xf9783ee9, 0xdff11758, 0x49bea2cf, 0xa0e0887f
+```
+$\rangle$
 
 [rsync]: https://rsync.samba.org/tech_report/node3.html
 [bup]: https://bup.github.io/
