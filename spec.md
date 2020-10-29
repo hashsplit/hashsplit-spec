@@ -88,7 +88,9 @@ We define a similar notation for exclusive or:
 
 $\bigoplus_{i = 0}^{n} i$
 
-denotes the bitwise exclusive or of the integers in $[0, n]$.
+denotes the bitwise exclusive or of the integers in $[0, n]$, i.e.
+
+$\bigoplus_{i = 0}^{n} i = 0 \oplus 1 \oplus \dots \oplus n$
 
 Finally, we define the “prefix” $\mathbb{P}_q(X)$
 of a non-empty sequence $X$
