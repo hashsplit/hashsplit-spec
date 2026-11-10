@@ -135,11 +135,14 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $H \in V_8 \rightarrow U_{32}$, the hash function
 - $T \in U_{32}$, the threshold
 
-The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$.
+We define the constant $W$, which we call the "window size," to be 64.
+The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} \ge W$.
 
 ## Definitions
 
-We define the constant $W$, which we call the "window size," to be 64.
+For any byte sequence $X$, we define $X_i = 0$ for $i < 0$
+(so that $\langle X_{|X|-W}, \dots, X_{|X|-1} \rangle$ always has length $W$,
+with $W - |X|$ zero bytes prepended when $|X| < W$).
 
 We define the predicate $q_C(X)$
 on a non-empty byte sequence $X$
@@ -147,7 +150,7 @@ with respect to a configuration $C$
 to be:
 
 - $\text{true}$ if $|X| = S_{\text{max}}$; otherwise
-- $\text{true}$ if $|X| \ge S_{\text{min}}$ and $H(\langle X_{\max(0,|X|-W)}, \dots, X_{|X|-1} \rangle) \mod 2^T = 0$
+- $\text{true}$ if $|X| \ge S_{\text{min}}$ and $H(\langle X_{|X|-W}, \dots, X_{|X|-1} \rangle) \mod 2^T = 0$
   (i.e., the last $W$ bytes of $X$ hash to a value with at least $T$ trailing zeroes);
   otherwise
 - $\text{false}$.
@@ -188,9 +191,9 @@ A “chunk” is a member of the sequence produced by $\operatorname{SPLIT}_C$.
 
 The “hashval” $V_C(X)$ of a byte sequence $X$ is:
 
-$H(\langle X_{\max(0, |X|-W)}, \dots, X_{|X|-1} \rangle)$
+$H(\langle X_{|X|-W}, \dots, X_{|X|-1} \rangle)$
 
-(i.e., the hash of the last $W$ bytes of $X$).
+(i.e., the hash of the last $W$ bytes of $X$, with $W - |X|$ zero bytes prepended if $|X| < W$).
 
 A “node” $N_{h,i}$ in a hashsplit tree
 at non-negative “height” $h$
