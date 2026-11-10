@@ -215,11 +215,11 @@ is $\max(0, Q - T)$,
 where $Q$ is the largest integer such that
 
 - $Q \le 32$ and
-- $V_C(\mathbb{P}_{q_C}(X)) \mod 2^Q = 0$
+- $V_C(X) \mod 2^Q = 0$
 
 (i.e., the level is the number of trailing zeroes in the hashval
 in excess of the threshold needed
-to produce the prefix chunk $\mathbb{P}_{q_C}(X)$).
+to produce the chunk $X$).
 
 The level $L_C(N)$ of a given _node_ $N$
 is the level of its rightmost leaf chunk:
@@ -282,14 +282,12 @@ compute its “root node” as follows.
 1. Let $N_0$ be $\langle\rangle$ (i.e., a node at height 0 with no children).
 2. If $|X| = 0$, then:
     a. Let $h$ be the largest height such that $N_h$ exists.
-    b. If $|N_0| > 0$, then:
-        i. For each integer $i$ in $[0 .. h]$, “close” $N_i$ (see below).
-        ii. Set $h \leftarrow h+1$.
-    c. [pruning] While $h > 0$ and $|N_h| = 1$, set $h \leftarrow h-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child).
-    d. **Terminate** with $N_h$ as the root node.
-3. Otherwise, set $N_0 \leftarrow N_0 \mathbin{\|} \langle P_C(X) \rangle$ (i.e., add $P_C(X)$ to the list of children in $N_0$).
-4. For each integer $i$ in $[0 .. L_C(X))$, “close” the node $N_i$ (see below).
-5. Set $X \leftarrow R_C(X)$.
+    b. For each integer $i$ in $[0 .. h)$, if $|N_i| > 0$, “close” $N_i$ (see below).
+    c. [pruning] Let $R = N_h$. While $h > 0$ and $|R| = 1$, set $R$ to the sole child of $R$ and set $h \leftarrow h-1$ (i.e., traverse from the prospective tree root downward until there is a node with more than one child, or height 0 is reached).
+    d. **Terminate** with $R$ as the root node.
+3. Otherwise, let $K = \mathbb{P}_{q_C}(X)$ (the next chunk of $X$) and set $N_0 \leftarrow N_0 \mathbin{\|} \langle K \rangle$ (i.e., add $K$ to the list of children in $N_0$).
+4. For each integer $i$ in $[0 .. L_C(K))$, “close” the node $N_i$ (see below).
+5. Set $X \leftarrow \mathbb{R}_{q_C}(X)$.
 6. Go to step 2.
 
 To “close” a node $N_i$:
