@@ -247,19 +247,25 @@ and a procedural description for practical construction.
 
 ### Algebraic description
 
+For a sequence $S$ and a predicate $q \in \operatorname{Type}(S) \rightarrow \{\text{true},\text{false}\}$,
+we define $\operatorname{GROUP}_q(S)$ recursively, as follows:
+
+- If $|S| = 0$, $\operatorname{GROUP}_q(S) = \langle \rangle$
+- Otherwise, $\operatorname{GROUP}_q(S) = \langle \mathbb{P}_q(S) \rangle \mathbin{\|} \operatorname{GROUP}_q(\mathbb{R}_q(S))$
+
 The tier $N_0$
 of hashsplit tree nodes
 for a given byte sequence $X$
 is equal to
 
-$\langle P_C(X) \rangle \mathbb{\|} R_C(X)$
+$\operatorname{GROUP}_{z_{C,0}}(\operatorname{SPLIT}_C(X))$
 
 The tier $N_{h+1}$
 of hashsplit tree nodes
 for a given byte sequence $X$
 is equal to
 
-$\langle \mathbb{P}_{z_{C,h+1}}(N_h) \rangle \mathbb{\|} \mathbb{R}_{z_{C,h+1}}(N_h)$
+$\operatorname{GROUP}_{z_{C,h+1}}(N_h)$
 
 (I.e., each node in the tree has as its children
 a sequence of chunks or lower-tier nodes,
@@ -267,9 +273,10 @@ as appropriate,
 up to and including the first one
 whose “level” is greater than the node’s height.)
 
-The root of the hashsplit tree is $N_{h^\prime,0}$
+If $|X| = 0$, the root of the hashsplit tree is $\langle \rangle$.
+Otherwise, the root of the hashsplit tree is $N_{h^\prime,0}$
 for the smallest value of $h^\prime$
-such that $|N_{h^\prime}| = 1$
+such that $|N_{h^\prime}| = 1$.
 
 ### Procedural description
 
