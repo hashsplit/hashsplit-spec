@@ -43,8 +43,7 @@ We define the following sets:
   sequences of elements of $V_8$.
 - $V_{32}$, The set of sequences of elements of $U_{32}$.
 
-All arithmetic operations in this document are implicitly performed
-modulo $2^{32}$. We use standard mathematical notation for addition,
+We use standard mathematical notation for addition,
 subtraction, multiplication, and exponentiation. Division always
 denotes integer division, i.e. any remainder is dropped.
 
@@ -62,9 +61,9 @@ We also use the following operators and functions:
 - $x \wedge y$ denotes the bitwise AND of $x$ and $y$
 - $x \vee y$ denotes the bitwise *inclusive* OR of $x$ and $y$
 - $x \oplus y$ denotes the bitwise *exclusive* OR of $x$ and $y$
-- $x \ll n$ denotes shifting $x$ to the left $n$ bits, i.e.
-  $x \ll n = x2^{n}$
-- $x \gg n$ denotes a *logical* right shift -- it shifts $x$ to the
+- $x \ll n$ denotes shifting $x \in U_{32}$ to the left $n$ bits, i.e.
+  $x \ll n = (x2^{n}) \mod 2^{32}$
+- $x \gg n$ denotes a *logical* right shift -- it shifts $x \in U_{32}$ to the
   right by $n$ bits, i.e. $x \gg n = x / 2^n$
 - $X \mathbin{\|} Y$ denotes the concatenation of two sequences $X$ and
   $Y$,
@@ -73,9 +72,9 @@ We also use the following operators and functions:
   \rangle$
 - $\min(x, y)$ denotes the minimum of $x$ and $y$ and $\max(x, y)$
   denotes the maximum
-- $\operatorname{ROT}_L(x, n)$ denotes the rotation of $x$ to the left
-  by $n$ bits, i.e. $\operatorname{ROT}_L(x, n) = (x \ll n) \vee (x \gg
-  (32 - n))$
+- $\operatorname{ROT}_L(x, n)$ denotes the rotation of $x \in U_{32}$ to the left
+  by $n$ bits, i.e. $\operatorname{ROT}_L(x, n) = (x \ll (n \mod 32)) \vee (x \gg
+  (32 - (n \mod 32)))$
 - $\operatorname{Type}(x)$ denotes the type of $x$.
 
 We use standard mathematical notation for summation. For example:
@@ -133,7 +132,7 @@ $\operatorname{SPLIT}_C \in V_8 \rightarrow V_v$
 - $S_{\text{min}} \in U_{32}$, the minimum split size
 - $S_{\text{max}} \in U_{32}$, the maximum split size
 - $H \in V_8 \rightarrow U_{32}$, the hash function
-- $T \in U_{32}$, the threshold
+- $T \in U_{32}$, the threshold (with $T \le 32$)
 
 The configuration must satisfy $S_{\text{max}} \ge S_{\text{min}} > 0$.
 
