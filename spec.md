@@ -362,9 +362,10 @@ A concrete `rrs` checksum is defined by the parameters:
 - $M$, the modulus
 - $c$, the character offset
 
-Given a sequence of bytes $\langle X_0, X_1, \dots, X_N \rangle$ and a
-choice of $M$ and $c$, the `rrs` hash of the sub-sequence $\langle X_k,
-\dots, X_l \rangle$ is $s(k, l)$, where:
+Given a sequence of bytes $X = \langle X_0, X_1, \dots, X_{|X|-1} \rangle$ and a
+choice of $M$ and $c$, the function $\operatorname{RRS}_{M,c} \in V_8 \rightarrow U_{32}$
+is defined as $\operatorname{RRS}_{M,c}(X) = s(0, |X| - 1)$, where for any
+sub-sequence $\langle X_k, \dots, X_l \rangle$ (with $l \ge k$):
 
 $a(k, l) = (\sum_{i = k}^{l} (X_i + c)) \mod M$
 
@@ -374,7 +375,7 @@ $s(k, l) = b(k, l) + 2^{16}a(k, l)$
 
 #### RRS1
 
-The concrete hash called `rrs1` uses the values:
+The concrete hash function $\operatorname{RRS1} = \operatorname{RRS}_{2^{16}, 31}$ (called `rrs1`) uses the values:
 
 - $M = 2^{16}$
 - $c = 31$
@@ -387,7 +388,7 @@ package `go4.org/rollsum`.
 #### Rolling
 
 `rrs` is a family of _rolling_ hashes. We can compute hashes in a
-rolling fashion by taking advantage of the fact that, for $l \geq k \geq 0$:
+rolling fashion by taking advantage of the fact that, for $l \geq k$:
 
 $a(k + 1, l + 1) = (a(k, l) - (X_k + c) + (X_{l+1} + c)) \mod M$
 
@@ -395,7 +396,7 @@ $b(k + 1, l + 1) = (b(k, l) - (l - k + 1)(X_k + c) + a(k + 1, l + 1)) \mod M$
 
 So, a typical implementation will work like this:
 
-- Keep $\langle X_k, \dots, X_l \rangle$ in a ring buffer.
+- Keep $\langle X_k, \dots, X_l \rangle$ in a ring buffer of size $W$ (so $l - k + 1 = W$).
 - Also store $a(k, l)$ and $b(k, l)$.
 - When $X_{l+1}$ is added to the hash:
   - Dequeue $X_k$ from the ring buffer, and enqueue $X_{l+1}$.
@@ -403,8 +404,14 @@ So, a typical implementation will work like this:
     $a(k + 1, l + 1)$ and $b(k + 1, l + 1)$. Then use those values to
     compute $s(k + 1, l + 1)$ and also store them for future use.
 
-In all cases the ring buffer should initially contain all zero bytes, reflecting
+In all cases the ring buffer should initially contain $W$ zero bytes, reflecting
 the use of $X_i = 0$ for $i < 0$ in ["Splitting"](#splitting), above.
+Correspondingly, for the initial window $\langle X_{-W}, \dots, X_{-1} \rangle$,
+$a$ and $b$ should be initialized to:
+
+$a(-W, -1) = (W \cdot c) \mod M$
+
+$b(-W, -1) = \left(\frac{W(W + 1)}{2} \cdot c\right) \mod M$
 
 #### Choice of M
 
