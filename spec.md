@@ -313,7 +313,7 @@ We define the function $\operatorname{CP32} \in V_8 \rightarrow U_{32}$
 as:
 
 $\operatorname{CP32}(X) = \bigoplus_{i = 0}^{|X| - 1}
-\operatorname{ROT}_L(g(X_i), |X| - i + 1)$
+\operatorname{ROT}_L(g(X_i), |X| - i - 1)$
 
 Where $g(n) = G_n$ and the sequence $G \in V_{32}$ is defined in the
 appendix.
